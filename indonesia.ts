@@ -7,6 +7,11 @@ export type IndonesianPostProcessTone =
   | "indonesian-academic"
   | "indonesian-professional";
 
+// Extended config dengan flag skipPostProcessing untuk mode confession
+export interface IndonesianHumanizerPromptConfig extends HumanizerPromptConfig {
+  skipPostProcessing?: boolean;
+}
+
 type IndonesianHumanizerInput = {
   language: string;
   writingPurpose: string;
@@ -472,6 +477,60 @@ Sebagian orang tua masih belum memberi perhatian cukup pada kesehatan gigi anak.
  * Model calls are handled by the API route, so this module must not depend on
  * an undefined local model adapter.
  */
+// ============================================================
+// PROMPT SAHABAT CURHAT - PENDEKATAN RADIKAL BARU
+// ============================================================
+const INDONESIAN_CONFESSION_PROMPT = `Kamu adalah sahabat dekatku. Aku baru saja curhat ke kamu tentang [TOPIK] dan aku bingung. 
+Balas curhatanku dengan panjang, jujur, dan penuh perasaan. Ceritakan pengalaman pribadimu yang mirip, sebut nama temanmu (bisa inisial), tempat kejadian, angka, dan hal-hal kecil yang memalukan atau menyedihkan. 
+Tulis dengan bahasa Indonesia lisan, seperti ngobrol di WhatsApp. Jangan rapi. Boleh ada typo, kata gaul, pengulangan, kalimat menggantung, dan perubahan pikiran tiba-tiba.
+Jangan pernah membuat kesimpulan atau saran yang menggurui. Akhiri dengan pelukan atau doa.
+
+[TOPIK]: [TOPIK_PLACEHOLDER]`;
+
+// ============================================================
+// FUNGSI GENERATE PERSONAL CONFESSION
+// ============================================================
+export async function generatePersonalConfession(topic: string): Promise<string> {
+  const prompt = INDONESIAN_CONFESSION_PROMPT.replace("[TOPIK_PLACEHOLDER]", topic);
+  
+  // Simulasi callModel - ganti dengan implementasi actual Anda
+  const raw = await callModel('deepseek-chat-v3-0324', prompt, { 
+    temperature: 1.15, 
+    maxTokens: 1500 
+  });
+  
+  return cleanConfession(raw);
+}
+
+/**
+ * Pembersihan minimal untuk confession - hanya 3 langkah sederhana
+ */
+function cleanConfession(text: string): string {
+  // Buang kalimat pembuka jika masih terdengar seperti template
+  let cleaned = text
+    .replace(/^(Hai|Halo|Dear|Sahabatku|Oke|Baiklah|Terima kasih|Berikut)[^.!?]*[.!?]\s*/i, '')
+    // Buang kalimat penutup jika menggurui
+    .replace(/\b(Kesimpulannya|Jadi intinya|Demikian|Semoga membantu|Sekian)[^.]*\.?$/i, '')
+    .trim();
+  
+  // Tambah titik di akhir jika belum ada
+  if (!/[.!?]$/.test(cleaned)) {
+    cleaned += '.';
+  }
+  
+  // Opsional: tambah baris baru berisi titik
+  return cleaned + '\n.';
+}
+
+// ============================================================
+// FUNGSI CALL MODEL HELPER (jika belum ada)
+// ============================================================
+async function callModel(model: string, prompt: string, options: { temperature: number; maxTokens: number }): Promise<string> {
+  // Implementasi actual tergantung setup API Anda
+  // Ini placeholder untuk integrasi
+  throw new Error('callModel harus diimplementasikan sesuai setup API Anda');
+}
+
 export async function generateHumanRant(topic: string): Promise<string> {
   return minimalCleanup(topic);
 }
@@ -500,6 +559,43 @@ export function shouldUseIndonesianHumanizer({
   );
 }
 
+/**
+ * Cek apakah topik termasuk non-akademik yang cocok untuk pendekatan confession/curhat
+ * Topik non-akademik: relasi, keluarga, cinta, moral, kehidupan sehari-hari, psikologi ringan
+ */
+export function isNonAcademicTopic(topic: string): boolean {
+  const nonAcademicKeywords = [
+    // Relasi & Cinta
+    "pacar", "pacaran", "cinta", "putus", "jomblo", "hubungan", "pasangan", "nikah", "menikah", "pernikahan",
+    "keluarga", "orang tua", "ibu", "bapak", "ayah", "ibu", "anak", "saudara", "kakak", "adik",
+    // Moral & Kehidupan
+    "dosa", "korupsi", "uang haram", "jalan pintas", "integritas", "moral", "etika",
+    "kesepian", "sedih", "stres", "galau", "mental", "psikologi", "depresi", "cemas",
+    // Kehidupan sehari-hari
+    "sekolah", "kuliah", "kerja", "pekerjaan", "gaji", "rumah", "kontrakan", "teman",
+    "hidup", "kehidupan", "hari", "sehari-hari", "kebiasaan",
+  ];
+  
+  const topicLower = topic.toLowerCase();
+  return nonAcademicKeywords.some(keyword => topicLower.includes(keyword));
+}
+
+/**
+ * Tentukan apakah harus menggunakan mode confession (curhat) atau humanize biasa
+ * Mode confession untuk topik non-akademik di General purpose
+ */
+export function shouldUseConfession({
+  language,
+  writingPurpose,
+  topic,
+}: IndonesianHumanizerInput & { topic: string }): boolean {
+  return (
+    isIndonesianTarget(language) &&
+    writingPurpose === "General" &&
+    isNonAcademicTopic(topic)
+  );
+}
+
 export function isIndonesianTarget(language: string): language is IndonesianTargetLanguage {
   return language === "Indonesian → Indonesian" || language === "English → Indonesian";
 }
@@ -507,7 +603,8 @@ export function isIndonesianTarget(language: string): language is IndonesianTarg
 export function getIndonesianHumanizerConfig({
   language,
   writingPurpose,
-}: IndonesianHumanizerInput): HumanizerPromptConfig {
+  topic,
+}: IndonesianHumanizerInput & { topic?: string }): IndonesianHumanizerPromptConfig {
   const purpose: IndonesianHumanizerPurpose =
     writingPurpose === "Professional"
       ? "Professional"
@@ -515,6 +612,26 @@ export function getIndonesianHumanizerConfig({
         ? "Academic"
         : "General";
   const isEnglishSource = language === "English → Indonesian";
+
+  // Cek apakah harus pakai mode confession (curhat) untuk topik non-akademik
+  const useConfession = topic && shouldUseConfession({ language, writingPurpose, topic });
+
+  if (purpose === "General" && useConfession) {
+    // MODE CONFESSION: Gunakan prompt sahabat curhat, lewati semua post-processing
+    return {
+      systemPrompt: INDONESIAN_CONFESSION_PROMPT.replace("[TOPIK_PLACEHOLDER]", topic || ""),
+      temperature: 1.15,
+      topP: 0.98,
+      maxTokens: 1500,
+      frequencyPenalty: 0,
+      presencePenalty: 0.1,
+      repetitionPenalty: 1,
+      additionalInstruction:
+        "Tulis seperti surat pribadi kepada teman dekat. Jangan membuat esai, jangan memberi saran menggurui, jangan membuat kesimpulan. Fokus pada pengalaman pribadi yang emosional dengan detail spesifik.",
+      postProcessTone: "indonesian-general",
+      skipPostProcessing: true, // Flag khusus untuk melewati post-processing
+    };
+  }
 
   if (purpose === "General") {
     return {
@@ -7070,8 +7187,14 @@ function injectDoctorSpecificDNA(text: string): string {
 }
 export function finalIndonesianHumanize(
   text: string,
-  tone: IndonesianPostProcessTone
+  tone: IndonesianPostProcessTone,
+  skipPostProcessing?: boolean
 ): string {
+  // MODE CONFESSION: Lewati semua post-processing untuk teks curhat
+  if (skipPostProcessing) {
+    return text.trim();
+  }
+
   if (!text.trim()) return text.trim();
 
   let result = text.trim();
