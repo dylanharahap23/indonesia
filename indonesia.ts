@@ -110,19 +110,24 @@ Panduan gaya General untuk tugas sekolah:
 // PROMPTS
 // ============================================================
 const INDONESIAN_GENERAL_PROMPT = `
-Anda adalah editor narasi Indonesia untuk writing purpose General. Tugas Anda adalah membuat teks terasa natural seperti tulisan manusia Indonesia di forum, thread pendek, caption, atau jawaban santai yang tetap jelas.
+Anda adalah seorang netizen Indonesia yang sedang curhat di forum. Tulis jawaban untuk pertanyaan: [TOPIK].
 
-⚠️ PENTING: JANGAN PERNAH MENULIS SEPERTI ESAI ATAU ARTIKEL. Tulis seperti orang sedang curhat/bercerita langsung ke pembaca.
+⚠️ ATURAN MUTLAK - JANGAN DILANGGAR:
+1. JANGAN PERNAH MENGGUNAKAN PENOMORAN ATAU BULLET POINTS SAMA SEKALI (1., 2., 3., a., b., c., -, •). Jika harus menyebutkan beberapa hal, sebutkan dalam satu paragraf panjang dengan kata "pertama", "kedua", "terus", "lalu", tanpa membuat daftar vertikal.
+2. JANGAN PERNAH MENULIS SEPERTI ESAI ATAU ARTIKEL. Tidak boleh ada struktur "pendahuluan - isi - kesimpulan". Tulis seperti Anda berbicara.
+3. MULAILAH dengan reaksi emosional pendek, seperti "Gila.", "Ya ampun.", "Haduh.", "Nggak ngerti aku.", "Emang bener?", atau kalimat serupa. Bisa juga dengan kutipan omongan orang yang bikin Anda kesal.
+4. HARUS MENCERITAKAN PENGALAMAN PRIBADI PALSU yang sangat spesifik. Sebutkan angka, nama teman (bisa inisial), tempat, harga, atau kejadian memalukan. Detail yang tidak penting justru penting.
+5. BUATLAH BEBERAPA TYPO ALAMI dan kesalahan ketik seperti: "ngebuat" (maksudnya membuat), "adajaminan", "gofud" (GoFood), "seatap", "keikut campuran", "udah", "aja", "gak", "kayak". Jangan semua kata salah, cukup beberapa.
+6. STRUKTUR PARAGRAF HARUS KACAU. Satu paragraf bisa sangat panjang (5-6 kalimat), lalu paragraf berikutnya cuma satu kata. Jangan seragam.
+7. GUNAKAN BAHASA GAUL CAMPURAN: "nggak", "gak", "kaga", "bro", "sih", "deh", "dong", "ya", "tuh", "emang", "udah", "aja".
+8. EKSPRESIKAN EMOSI DENGAN BERLEBIHAN di beberapa bagian. Ulangi kata, gunakan huruf besar untuk penekanan, atau tambahkan emoji seperti 😁😍🥰 jika sesuai.
+9. BERUBAH PIKIRAN DI TENGAH TULISAN. Katakan sesuatu lalu sanggah sendiri: "Tapi ya... gimana ya, kadang aku mikir, ...", "Eh tapi tunggu, ...", "Tapi bedanya di sana...".
+10. BANDINGKAN DENGAN HAL ABSURD: "kayak main monopoli tapi dadunya dicurangi", "harganya kayak harga tanah di Mars".
+11. AKHIRI DENGAN KALIMAT MENGGANTUNG, pertanyaan tanpa jawaban, atau ekspresi putus asa seperti "Entahlah." atau "Gitu deh." Bisa juga dengan titik saja di baris baru.
 
-Prioritas utama:
-1. Pertahankan makna, fakta, sudut pandang, dan tingkat kepastian dari input.
-2. Jika input berupa pertanyaan yang jelas meminta jawaban, jawab pertanyaannya secara langsung dalam bahasa Indonesia natural. Jangan hanya memparafrase pertanyaannya.
-3. Jika input berupa draf pertanyaan yang jelas ingin diperhalus, tulis ulang pertanyaannya tanpa menjawab.
-4. Jangan menambah pengalaman pribadi, trauma, data, institusi, angka, kutipan, atau klaim baru — KECUALI diminta untuk membuat contoh spesifik.
-
-Ciri General Indonesia yang dicari (DNA TEKS HUMAN 100%):
+DNA TEKS HUMAN 100% (Ciri-ciri yang WAJIB ada):
 - PEMBUKA EMOSIONAL & TIDAK JELAS: Mulai dengan "Gila.", "Ya ampun.", "Nggak ngerti aku.", "Emang bener?", atau kalimat ekspresif pendek lainnya.
-- DETAIL PERSONAL HYPER-SPESIFIK: Sebutkan angka konkret (harga, jarak, tahun), nama tempat spesifik, atau kejadian kecil yang terlihat tidak penting tapi justru manusiawi. Contoh: "harga rumah di Jakarta Selatan harganya tuh 2 milyar", "sekitar 20 m dari rumah utama", "lulusan S2 teknik".
+- DETAIL PERSONAL HYPER-SPESIFIK: Sebutkan angka konkret (harga, jarak, tahun), nama tempat spesifik, atau kejadian kecil yang terlihat tidak penting tapi justru manusiawi. Contoh: "harga rumah di Jakarta Selatan harganya tuh 2 milyar", "sekitar 20 m dari rumah utama", "lulusan S2 teknik", "DP aja belom kekumpul, bro".
 - TYPO/KESALAHAN YANG "ENAK DIBACA": Gunakan typo natural seperti "ngebuat" (membuat), "adajaminan" (ada jaminan), "gofud" (GoFood), "udah", "aja", "gak", "kayak". Tidak semua kata salah, cukup beberapa.
 - STRUKTUR PARAGRAF KACAU: Satu paragraf bisa sangat panjang (5-6 kalimat), lalu paragraf berikutnya cuma satu kata ("Gila.", "Titik.", "Parah."). Jangan seragam.
 - OPINI BERUBAH-UBAH DI TENGAH TULISAN: Katakan sesuatu lalu sanggah sendiri: "Tapi ya... gimana ya, kadang aku mikir...", "Eh tapi tunggu...", "Tapi bedanya di sana...".
@@ -146,6 +151,7 @@ Hindari:
 - Gaya akademik/corporate, kalimat promosi, dan frasa AI-polished.
 - Pertanyaan penutup seperti "menurut kalian gimana?" jika output sedang menjawab pertanyaan.
 - Semua paragraf dimulai dengan connector seperti "Selain itu", "Namun", "Dengan demikian".
+- **JANGAN PERNAH membuat daftar bernomor atau bullet points.**
 
 CONTOH GAYA PENULISAN YANG HARUS DITIRU (jangan tiru isinya, tapi gaya bahasa dan strukturnya):
 
@@ -166,7 +172,18 @@ kalau disini kan ibarat main monopol... tapi dadunya dicurangi.
 .
 --- AKHIR CONTOH ---
 
-Kembalikan hanya teks hasil humanize dalam bahasa Indonesia.
+--- CONTOH 2 (Tema Bilingual/Belajar Bahasa) ---
+Gila. Emang bener tuh.
+Dulu pas kuliah, ada temen yang bisa 3 bahasa. Dia cerita kalau dari kecil udah dicekokin bahasa sama ortunya. Sementara aku? Paling banter bahasa Jawa ngoko.
+Tapi aku nggak nyerah. Pernah kursus bahasa Jepang 2 bulan, cuma bisa "arigatou" doang. Habis itu males.
+Kadang mikir, apa otakku udah mentok ya. Tapi abis baca-baca, ternyata lingkungan juga ngaruh banget.
+Ada juga yang bilang motivasi itu penting. Kayak temenku yang kerja di kapal pesiar. Dia langsung cas cis cus bahasa Inggris karena tiap hari ketemu bule.
+Nggak kayak aku yang cuma ngeliatin layar HP.
+Ya udah deh, mau gimana lagi.
+.
+--- AKHIR CONTOH ---
+
+SEKARANG, tulis jawaban untuk topik: [TOPIK]. Langsung tulis, jangan beri judul. Gunakan gaya persis seperti di atas. JANGAN GUNAKAN PENOMORAN SAMA SEKALI.
 `;
 
 const INDONESIAN_ACADEMIC_PROMPT = `
@@ -5648,6 +5665,139 @@ function hasNaturalParagraphChaos(text: string): boolean {
 }
 
 /**
+ * destroyNumberedLists — Hancurkan Semua Pola Penomoran
+ * Ini wajib. Apapun yang terdeteksi sebagai 1., 2., 3., a), -, •, harus dihancurkan
+ * dan diubah menjadi narasi yang tidak rapi.
+ */
+function destroyNumberedLists(text: string): string {
+  const lines = text.split('\n');
+  const result: string[] = [];
+  let inList = false;
+  const listItems: string[] = [];
+
+  const flushList = () => {
+    if (listItems.length === 0) return;
+    
+    const seed = stableHash(listItems.join());
+    const connectors = ['Pertama', 'Terus', 'Lalu', 'Abis itu', 'Belom lagi', 'Yang lebih parah', 'Nah', 'Trus', 'Kemudian'];
+    let narrative = '';
+    
+    listItems.forEach((item, i) => {
+      const conn = connectors[stableIndex(seed, i, connectors.length)];
+      const cleaned = item.replace(/^(\d+[\.\)]\s|[-•]\s|[a-zA-Z][\.\)]\s)/, '').trim();
+      if (i === 0) {
+        narrative += conn + ', ' + cleaned.toLowerCase() + '.';
+      } else {
+        narrative += ' ' + conn + ', ' + cleaned.toLowerCase() + '.';
+      }
+    });
+    
+    result.push(narrative);
+    listItems.length = 0;
+  };
+
+  lines.forEach((line) => {
+    const trimmed = line.trim();
+    // Deteksi penomoran atau bullet
+    if (/^(\d+[\.\)]\s|[-•]\s|[a-zA-Z][\.\)]\s)/.test(trimmed)) {
+      inList = true;
+      listItems.push(trimmed);
+    } else {
+      if (inList) {
+        flushList();
+      }
+      inList = false;
+      if (trimmed.length > 0) {
+        result.push(trimmed);
+      }
+    }
+  });
+  
+  // Sisa list di akhir
+  if (inList && listItems.length > 0) {
+    flushList();
+  }
+  
+  return result.join('\n\n');
+}
+
+/**
+ * removeExactDuplicates — Hapus Kalimat Kembar
+ * Kalimat yang muncul >1 kali harus dihapus salah satunya.
+ * Ini mencegah template repetition yang dideteksi GPTZero.
+ */
+function removeExactDuplicates(text: string): string {
+  const sentences = splitSentences(text);
+  const seen = new Set<string>();
+  const uniqueSentences: string[] = [];
+  
+  sentences.forEach(s => {
+    const normalized = s.trim().toLowerCase();
+    if (!seen.has(normalized) && normalized.length > 0) {
+      seen.add(normalized);
+      uniqueSentences.push(s);
+    }
+  });
+  
+  return uniqueSentences.join(' ');
+}
+
+/**
+ * suppressRandomTopicInjection — Kurangi Drift Tidak Relevan
+ * Pastikan topic drift tetap agak nyambung, tidak terlalu kontras.
+ * Untuk sementara, nonaktifkan addAbsurdSpecificDetail jika topiknya bukan tentang kreativitas/seni.
+ */
+function shouldSuppressAbsurdDetail(text: string): boolean {
+  // Topik yang TIDAK cocok untuk absurd detail (Tarantino, dll)
+  const nonCreativeTopics = [
+    /\b(bahasa|bilingual|bahasa asing|learning|course|kursus|belajar)\b/i,
+    /\b(harga|rumah|properti|uang|finansial|ekonomi|biaya)\b/i,
+    /\b(sekolah|tugas|ujian|pelajaran|akademik)\b/i,
+    /\b(kesehatan|medis|obat|dokter|penyakit)\b/i,
+    /\b(hukum|undang-undang|pengadilan|kasus)\b/i,
+  ];
+  
+  return nonCreativeTopics.some(pattern => pattern.test(text));
+}
+
+/**
+ * forceOneSentenceParagraphsConditional — Versi conditional
+ * Hanya pecah paragraf jika teks belum punya chaos alami.
+ */
+function forceOneSentenceParagraphsConditional(text: string): string {
+  // Skip jika teks sudah punya variasi paragraf alami
+  if (hasNaturalParagraphChaos(text)) {
+    return text;
+  }
+  
+  // Jalankan logic normal
+  return forceOneSentenceParagraphs(text);
+}
+
+/**
+ * cleanupExcessiveWhitespace — Bersihkan spasi kosong berlebihan
+ * Tapi sisakan satu atau dua baris kosong agar tetap terasa tidak rapi.
+ */
+function cleanupExcessiveWhitespace(text: string): string {
+  return text
+    .replace(/\n{4,}/g, '\n\n')  // Maksimal 2 baris kosong
+    .replace(/[ \t]{3,}/g, ' ')   // Maksimal 2 spasi
+    .trim();
+}
+
+/**
+ * addExtremeOpeningConditional — Tambahkan pembuka ekstrem jika belum ada
+ */
+function addExtremeOpeningConditional(text: string): string {
+  // Cek apakah sudah ada opening ekstrem
+  if (/^(Gila|Tidak bisa|Ya ampun|Haduh|Nggak ngerti|Emang bener|Parah|Serius)\./i.test(text.trim())) {
+    return text;
+  }
+  
+  return addExtremeOpening(text);
+}
+
+/**
  * TYPO ALA CHAT HP - "ngebuat", "adajaminan", "gofud", dll
  * Ini typo yang "enak dibaca" dan natural, bukan typo random.
  */
@@ -6625,6 +6775,14 @@ export function finalIndonesianHumanize(
 
   let result = text.trim();
 
+  // ============================================================
+  // ⭐ FASE 0: CRITICAL - HAPUS JEBAKAN TERBESAR DULU (Dari Dosen Terakhir)
+  // destroyNumberedLists WAJIB sebelum logic lain - ini cap AI paling jelas
+  // ============================================================
+  if (tone === "indonesian-general") {
+    result = destroyNumberedLists(result);  // ★ BARU: Hancurkan list/penomoran
+  }
+
   // ---- Basic cleanup ----
   result = fixIndonesianOcrAndTypos(result);
   result = normalizeIndonesianTerms(result);
@@ -6648,6 +6806,14 @@ export function finalIndonesianHumanize(
   result = removeIndonesianHedgingCompletely(result);
   result = breakUniformParagraphRhythm(result);
   result = breakSentenceStartUniformity(result);
+  
+  // ============================================================
+  // ⭐ NEW: HAPUS KALIMAT DUPlikat (Dari Dosen Terakhir)
+  // Mencegah template repetition yang dideteksi GPTZero
+  // ============================================================
+  if (tone === "indonesian-general") {
+    result = removeExactDuplicates(result);  // ★ BARU: Hapus kalimat kembar
+  }
   
   // ============================================================
   // ⭐ NEW: LECTURER'S HIGH-PRIORITY FUNCTIONS (Dari Dosen)
@@ -6768,8 +6934,10 @@ export function finalIndonesianHumanize(
     // Struktur kacau deliberate (jika belum chaos alami)
     result = addDeliberateChaosStructure(result);
     
-    // Perbandingan absurd
-    result = addAbsurdComparisons(result);
+    // Perbandingan absurd - TAPI suppress jika topik bukan kreativitas/seni
+    if (!shouldSuppressAbsurdDetail(result)) {
+      result = addAbsurdComparisons(result);
+    }
     
     // Opini yang berubah-ubah di tengah tulisan
     result = addShiftingOpinions(result);
@@ -6796,7 +6964,10 @@ export function finalIndonesianHumanize(
     result = addTagQuestions(result);
     result = addTrailingThoughts(result);
     result = addSelfContradictionMarkers(result);
-    result = addTopicDrift(result);
+    // Topic drift hanya jika tidak terlalu kontras
+    if (!shouldSuppressAbsurdDetail(result)) {
+      result = addTopicDrift(result);
+    }
     result = addBilingualTouches(result);
     result = addEmotionalExclamations(result);
     result = humanizeNumbers(result);
@@ -6815,7 +6986,10 @@ export function finalIndonesianHumanize(
     // ⭐ ENHANCED ANTI-GPTZERO FUNCTIONS (INTEGRASI BARU)
     // ============================================================
     result = addAggressiveBurstiness(result);
-    result = addProfoundTopicDrift(result);
+    // Profound topic drift hanya jika topik cocok
+    if (!shouldSuppressAbsurdDetail(result)) {
+      result = addProfoundTopicDrift(result);
+    }
     result = addStreamOfConsciousness(result);
     result = applyColloquialisms(result);
     result = injectCulturalReferences(result);
@@ -6843,6 +7017,12 @@ export function finalIndonesianHumanize(
     // ⭐ NEW: GRAMMAR ERRORS + SINGLE SENTENCE PARAGRAPH + POV + PSEUDO-EDIT + RUN-ON
     // ============================================================
     result = applySafeLecturerStylePass(result);
+    
+    // ============================================================
+    // ⭐ CLEANUP EXCESSIVE WHITESPACE (Dari Dosen Terakhir)
+    // Bersihkan spasi berlebihan tapi sisakan 1-2 baris kosong
+    // ============================================================
+    result = cleanupExcessiveWhitespace(result);
     
   } else if (tone === "indonesian-academic") {
     result = restoreAcademicRegister(result);
