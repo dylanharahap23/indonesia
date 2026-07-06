@@ -468,33 +468,12 @@ Sebagian orang tua masih belum memberi perhatian cukup pada kesehatan gigi anak.
 // ============================================================
 
 /**
- * Generate human rant from scratch - mengabaikan teks asli sepenuhnya
- * dan menyuruh model menulis ulang topik dari nol dengan identitas
- * sebagai manusia yang sedang curhat.
- * 
- * @param topic - Topik yang akan ditulis (bukan teks AI yang sudah ada)
- * @returns Teks bergaya manusia 100% seperti curhat di forum
+ * Compatibility helper kept for callers that may import generateHumanRant.
+ * Model calls are handled by the API route, so this module must not depend on
+ * an undefined local model adapter.
  */
 export async function generateHumanRant(topic: string): Promise<string> {
-  // Prompt yang mengunci identitas "manusia biasa", bukan "asisten yang membantu menulis esai"
-  const prompt = `[INST] Anda adalah seorang pengguna forum Quora Indonesia yang biasa saja, bukan penulis. Anda ingin menjawab pertanyaan tentang: ${topic}.
-
-JANGAN MENULIS ESAI. Tulis seperti orang yang sedang emosi, ngetik cepat di HP, tanpa diedit. Harus ada:
-- Kalimat pertama reaksi emosional pendek (contoh: "Gila.", "Ya ampun.", "Serius deh.")
-- Cerita pengalaman pribadi yang SANGAT SPESIFIK: sebut angka, nama teman, tempat, kejadian memalukan, detail yang tidak penting tapi terasa nyata.
-- Bahasa gaul & typo alami: "nggak", "gak", "emang", "ngebuat", "adajaminan"
-- Paragraf tidak seragam: ada yang sangat panjang, ada yang hanya satu kata.
-- JANGAN GUNAKAN kata transisi seperti "selain itu", "oleh karena itu", "dengan demikian".
-- Ubah pikiran di tengah: "Tapi ya... gimana ya...", "Eh, tapi..."
-- Akhiri dengan kalimat menggantung atau titik di baris baru.
-
-Jangan tulis ulang teks apapun. Tulis jawaban baru dari nol dengan gaya itu. [/INST]`;
-
-  // Temperature tinggi (1.1) membuat output lebih liar dan tidak terduga
-  // Catatan: callModel harus di-import dari humanizer.ts atau didefinisikan di tempat lain
-  const response = await callModel('deepseek-chat-v3-0324', prompt, { temperature: 1.1 });
-  
-  return minimalCleanup(response);
+  return minimalCleanup(topic);
 }
 
 /**
@@ -553,8 +532,6 @@ export function getIndonesianHumanizerConfig({
       additionalInstruction:
         "Jaga suara penulis tetap terasa. Untuk General, pilih gaya narasi atau jawaban natural sesuai input. Jangan sekadar mengganti kata dari draf AI; hilangkan pembuka template, daftar konsep abstrak, transisi beruntun, dan penutup kesimpulan yang terlalu bulat. Untuk tugas sekolah, tulis seperti siswa yang menjawab dengan bahasa sendiri: konkret, tidak terlalu akademik, tidak memakai penutup otomatis, dan jangan menambahkan typo/emoji/slang palsu. Untuk topik emosional seperti kesepian, pakai gaya reflective Medium seperlunya. Untuk topik uang haram, korupsi, dosa, atau kekayaan mendadak, pakai gaya moral-reflektif. Untuk topik relasi, harta, perempuan/laki-laki, dan pasangan, pakai gaya debat relasi Indonesia: frontal secukupnya, konkret, tidak seperti artikel psikologi populer, dan jangan merendahkan kelompok gender. Jangan mengarang pengalaman atau fakta baru. Jika input meminta jawaban, jawab langsung dengan bahasa Indonesia sehari-hari yang jelas; jika hanya meminta rewrite, parafrase tanpa menjawab.",
       postProcessTone: "indonesian-general",
-      // ⭐ NEW: Gunakan generateHumanRant untuk full rewrite sebagai human rant
-      useFullRewriteMode: true,
     };
   }
 
@@ -6951,6 +6928,8 @@ function applyLecturerEnhancementPass(text: string, tone: IndonesianPostProcessT
 function detectTopic(text: string): string {
   const lower = text.toLowerCase();
 
+  if (/\b(dokter|kedokteran|fk|fakultas kedokteran|koas|ko-ass|residen|spesialis|klinik|rumah sakit|pasien|jaga malam|stetoskop|jas putih|profesi dokter)\b/i.test(lower)) return "dokter";
+
   if (/\b(skincare|kulit|jerawat|glowing|sunscreen|krim|cream|serum|toner|cuci muka|sabun|moisturizer|pelembap|eksfoliasi|retinol|niacinamide|acne)\b/i.test(lower)) return "skincare";
   if (/\b(rumah|harga tanah|properti|ngontrak|kontrakan|kpr|dp|suku bunga|sertifikat|developer|apartemen|kos|sewa rumah|tanah kavling)\b/i.test(lower)) return "properti";
   if (/\b(gaji|tabungan|dana darurat|investasi|saham|utang|hutang|kredit|cash flow|arus kas|reksadana|crypto|deposito|cicilan)\b/i.test(lower)) return "keuangan";
@@ -6968,6 +6947,7 @@ function removeOffTopicSentences(text: string, topic: string): string {
     keuangan: /\b(skincare|kulit|jerawat|glowing|sunscreen|serum|toner|cuci muka|grammar|tenses|native speaker|polyglot|imunisasi|mpasi|daycare)\b/i,
     bahasa: /\b(skincare|kulit|jerawat|glowing|sunscreen|serum|toner|kpr|harga tanah|properti|saham|reksadana|imunisasi|mpasi|daycare)\b/i,
     parenting: /\b(skincare|serum|toner|sunscreen|jerawat|harga tanah|kpr|saham|reksadana|crypto|grammar|tenses|native speaker|polyglot)\b/i,
+    dokter: /\b(gaji|cicilan|tabungan|dana darurat|investasi|saham|kredit|direktur|perusahaan|STM|ijazah|etos kerja|ongkos|pulsa|parkir|makan siang|ember kecil yang bocor|diisi terus|Contoh kecilnya|Salah satu teman saya|Lagi di kasur|scroll HP|Ya gitu deh|skincare|serum|toner|sunscreen|jerawat|harga tanah|kpr|grammar|tenses|native speaker|polyglot|imunisasi|mpasi|daycare)\b/i,
     umum: /\b()\b/i,
   };
 
@@ -6977,6 +6957,7 @@ function removeOffTopicSentences(text: string, topic: string): string {
     keuangan: /\b(gaji|tabungan|dana darurat|investasi|saham|utang|hutang|kredit|cash flow|arus kas|reksadana|crypto|deposito|cicilan)\b/i,
     bahasa: /\b(bahasa|inggris|grammar|tenses|native speaker|polyglot|vocabulary|pronunciation|speaking|listening|ielts|toefl)\b/i,
     parenting: /\b(anak|bayi|sekolah|imunisasi|susu|parenting|orang tua|balita|popok|mpasi|daycare|pengasuhan)\b/i,
+    dokter: /\b(dokter|kedokteran|fk|fakultas kedokteran|koas|ko-ass|residen|spesialis|klinik|rumah sakit|pasien|jaga malam|stetoskop|jas putih|profesi dokter|anatomi|obat|ujian kompetensi)\b/i,
     umum: /\b()\b/i,
   };
 
@@ -7003,6 +6984,89 @@ function removeOffTopicSentences(text: string, topic: string): string {
     })
     .filter(Boolean)
     .join("\n\n");
+}
+function removeAllFinanceAndWorkTemplates(text: string): string {
+  const bannedPatterns = [
+    /\bgaji\b/i,
+    /\bcicilan\b/i,
+    /\btabungan\b/i,
+    /\bdana darurat\b/i,
+    /\binvestasi\b/i,
+    /\bsaham\b/i,
+    /\bkredit\b/i,
+    /\bdirektur\b/i,
+    /\bperusahaan\b/i,
+    /\bSTM\b/i,
+    /\bijazah\b/i,
+    /\betos kerja\b/i,
+    /\bongkos\b/i,
+    /\bpulsa\b/i,
+    /\bparkir\b/i,
+    /\bmakan siang\b/i,
+    /\bember kecil yang bocor\b/i,
+    /\bdiisi terus\b/i,
+    /\bContoh kecilnya\b/i,
+    /\bSalah satu teman saya\b/i,
+    /\bLagi di kasur\b/i,
+    /\bscroll HP\b/i,
+    /\bYa gitu deh\b/i,
+    /\bteman saya dulu\b/i,
+    /\btemen saya dulu\b/i,
+    /\blulus STM\b/i,
+    /\bsekarang jadi direktur\b/i,
+    /\bgaji baru masuk\b/i,
+  ];
+
+  return splitParagraphs(text)
+    .map((paragraph) => {
+      const sentences = splitSentences(paragraph);
+      if (!sentences.length) return paragraph;
+      return sentences
+        .filter((sentence) => !bannedPatterns.some((pattern) => pattern.test(sentence)))
+        .join(" ")
+        .trim();
+    })
+    .filter(Boolean)
+    .join("\n\n");
+}
+
+function injectDoctorSpecificDNA(text: string): string {
+  const seed = stableHash(text);
+  const paragraphs = splitParagraphs(text);
+  if (!paragraphs.length) return text;
+
+  const hasDoctorOpening = /\b(cita-cita.*dokter|jadi dokter|jas putih|stetoskop|rumah sakit|pasien)\b/i.test(paragraphs[0]);
+  if (!hasDoctorOpening) {
+    const openings = [
+      '"Sudah besar cita-citanya mau jadi apa?" "Jadi dokter," jawab anak kecil itu, biasanya tanpa tahu panjangnya jalan ke sana.',
+      'Kalau ngomongin dokter, orang sering keburu membayangkan jas putih, stetoskop, dan hidup yang terlihat mapan.',
+      'Dulu profesi dokter sering dianggap cita-cita paling aman: terhormat, dibutuhkan, dan kelihatan jelas masa depannya.',
+    ];
+    paragraphs.unshift(openings[stableIndex(seed, 10, openings.length)]);
+  }
+
+  const alreadyHasDoctorDetail = /\b(koas|residen|jaga malam|pasien|IGD|visite|stase|rumah sakit|klinik)\b/i.test(text);
+  if (!alreadyHasDoctorDetail && paragraphs.length >= 2) {
+    const details = [
+      'Yang sering tidak kelihatan adalah bagian jaga malam, koas, stase yang pindah-pindah, dan tekanan saat berhadapan langsung dengan pasien.',
+      'Di balik kata dokter, ada tahun-tahun belajar anatomi, hafalan obat, jaga malam, dan momen ketika keputusan kecil bisa berdampak besar ke pasien.',
+      'Jalur kedokteran itu bukan cuma kuliah lalu pakai jas putih. Ada koas, ujian kompetensi, ritme rumah sakit, dan tanggung jawab yang tidak bisa ditaruh sembarangan.',
+    ];
+    const insertAt = Math.min(2, paragraphs.length);
+    paragraphs.splice(insertAt, 0, details[stableIndex(seed, 20, details.length)]);
+  }
+
+  const closingPatterns = /\b(bermanfaat buat orang lain|bukan cuma soal status|bonus|prioritas hidup|pasien)\b/i;
+  if (!closingPatterns.test(paragraphs[paragraphs.length - 1])) {
+    const closings = [
+      'Pada akhirnya, dokter bukan cuma soal status atau penghasilan. Yang paling berat justru menjaga ilmu, empati, dan tanggung jawab ke pasien.',
+      'Kalau nanti hidupnya nyaman, itu bonus. Intinya tetap: ilmunya dipakai, pasiennya terbantu, dan manusianya tidak hilang di tengah lelah.',
+      'Jadi dokter atau bukan, ukuran berhasilnya tidak selalu kelihatan dari luar. Kadang yang paling penting justru apakah hidup itu masih berguna buat orang lain.',
+    ];
+    paragraphs.push(closings[stableIndex(seed, 30, closings.length)]);
+  }
+
+  return paragraphs.join("\n\n");
 }
 export function finalIndonesianHumanize(
   text: string,
@@ -7294,7 +7358,13 @@ export function finalIndonesianHumanize(
 
   if (tone === "indonesian-general") {
     const topic = detectTopic(result);
-    result = removeOffTopicSentences(result, topic);
+    if (topic === "dokter" || topic === "kedokteran") {
+      result = removeAllFinanceAndWorkTemplates(result);
+      result = removeOffTopicSentences(result, topic);
+      result = injectDoctorSpecificDNA(result);
+    } else {
+      result = removeOffTopicSentences(result, topic);
+    }
   }
   // ---- Final polishing ----
   result = trimRepeatedWords(result);
