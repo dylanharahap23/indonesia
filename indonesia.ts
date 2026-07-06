@@ -6175,15 +6175,7 @@ function addShiftingOpinions(text: string): string {
  * UPDATE: forceOneSentenceParagraphs dengan kondisi hasNaturalParagraphChaos
  * Jangan pecah kalau teks sudah punya chaos alami dari prompt.
  */
-function forceOneSentenceParagraphsConditional(text: string): string {
-  // Jika teks sudah punya chaos alami, skip pemecahan
-  if (hasNaturalParagraphChaos(text)) {
-    return text;
-  }
-  
-  // Jalankan logic normal
-  return forceOneSentenceParagraphs(text);
-}
+
 
 function cleanupIndonesianSpacing(text: string, keepNarrativePauses = false) {
   let result = text
@@ -6767,6 +6759,61 @@ function applyLecturerEnhancementPass(text: string, tone: IndonesianPostProcessT
 // ============================================================
 // 16. MAIN POST-PROCESSING FUNCTION (UPDATED WITH LECTURER'S FUNCTIONS)
 // ============================================================
+function detectTopic(text: string): string {
+  const lower = text.toLowerCase();
+
+  if (/\b(skincare|kulit|jerawat|glowing|sunscreen|krim|cream|serum|toner|cuci muka|sabun|moisturizer|pelembap|eksfoliasi|retinol|niacinamide|acne)\b/i.test(lower)) return "skincare";
+  if (/\b(rumah|harga tanah|properti|ngontrak|kontrakan|kpr|dp|suku bunga|sertifikat|developer|apartemen|kos|sewa rumah|tanah kavling)\b/i.test(lower)) return "properti";
+  if (/\b(gaji|tabungan|dana darurat|investasi|saham|utang|hutang|kredit|cash flow|arus kas|reksadana|crypto|deposito|cicilan)\b/i.test(lower)) return "keuangan";
+  if (/\b(bahasa|inggris|grammar|tenses|native speaker|polyglot|vocabulary|pronunciation|speaking|listening|ielts|toefl)\b/i.test(lower)) return "bahasa";
+  if (/\b(anak|bayi|sekolah|imunisasi|susu|parenting|orang tua|balita|popok|mpasi|daycare|pengasuhan)\b/i.test(lower)) return "parenting";
+
+  return "umum";
+}
+
+function removeOffTopicSentences(text: string, topic: string): string {
+  const offTopicPatterns: Record<string, RegExp> = {
+    skincare: /\b(gaji|tabungan|dana darurat|investor|investasi|saham|utang|hutang|kredit|kpr|dp|suku bunga|sewa|kos|ngontrak|harga tanah|properti|emak|bapak|bayi|imunisasi|sekolah anak|parenting|mpasi|daycare)\b/i,
+    properti: /\b(skincare|kulit|jerawat|glowing|sunscreen|serum|toner|cuci muka|sabun wajah|grammar|tenses|native speaker|polyglot|imunisasi|mpasi|daycare)\b/i,
+    keuangan: /\b(skincare|kulit|jerawat|glowing|sunscreen|serum|toner|cuci muka|grammar|tenses|native speaker|polyglot|imunisasi|mpasi|daycare)\b/i,
+    bahasa: /\b(skincare|kulit|jerawat|glowing|sunscreen|serum|toner|kpr|harga tanah|properti|saham|reksadana|imunisasi|mpasi|daycare)\b/i,
+    parenting: /\b(skincare|serum|toner|sunscreen|jerawat|harga tanah|kpr|saham|reksadana|crypto|grammar|tenses|native speaker|polyglot)\b/i,
+    umum: /\b()\b/i,
+  };
+
+  const topicKeepPatterns: Record<string, RegExp> = {
+    skincare: /\b(skincare|kulit|jerawat|glowing|sunscreen|krim|cream|serum|toner|cuci muka|sabun|moisturizer|pelembap|eksfoliasi|retinol|niacinamide|acne)\b/i,
+    properti: /\b(rumah|harga tanah|properti|ngontrak|kontrakan|kpr|dp|suku bunga|sertifikat|developer|apartemen|kos|sewa rumah|tanah kavling)\b/i,
+    keuangan: /\b(gaji|tabungan|dana darurat|investasi|saham|utang|hutang|kredit|cash flow|arus kas|reksadana|crypto|deposito|cicilan)\b/i,
+    bahasa: /\b(bahasa|inggris|grammar|tenses|native speaker|polyglot|vocabulary|pronunciation|speaking|listening|ielts|toefl)\b/i,
+    parenting: /\b(anak|bayi|sekolah|imunisasi|susu|parenting|orang tua|balita|popok|mpasi|daycare|pengasuhan)\b/i,
+    umum: /\b()\b/i,
+  };
+
+  const offTopicPattern = offTopicPatterns[topic];
+  if (!offTopicPattern || topic === "umum") return text;
+
+  const keepPattern = topicKeepPatterns[topic];
+
+  return splitParagraphs(text)
+    .map((paragraph) => {
+      const sentences = splitSentences(paragraph);
+      if (sentences.length === 0) return paragraph;
+
+      const cleaned = sentences.filter((sentence) => {
+        const sentenceLower = sentence.toLowerCase();
+        const looksOffTopic = offTopicPattern.test(sentenceLower);
+        if (!looksOffTopic) return true;
+
+        // Keep mixed-context sentences if they still explicitly discuss the main topic.
+        return keepPattern.test(sentenceLower);
+      });
+
+      return cleaned.join(" ").trim();
+    })
+    .filter(Boolean)
+    .join("\n\n");
+}
 export function finalIndonesianHumanize(
   text: string,
   tone: IndonesianPostProcessTone
@@ -7037,6 +7084,10 @@ export function finalIndonesianHumanize(
     result = softenProfessionalOpenings(result);
   }
 
+  if (tone === "indonesian-general") {
+    const topic = detectTopic(result);
+    result = removeOffTopicSentences(result, topic);
+  }
   // ---- Final polishing ----
   result = trimRepeatedWords(result);
   result = compressOverExplainedParagraphs(result, tone);
