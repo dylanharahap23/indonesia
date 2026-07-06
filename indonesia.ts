@@ -467,6 +467,21 @@ Jangan pernah membuat kesimpulan atau saran yang menggurui. Akhiri dengan peluka
 [TOPIK]: [TOPIK_PLACEHOLDER]`;
 
 // ============================================================
+// PROMPT LIFE STORY MODE - UNTUK TOPIK INSECURE/RENDAH DIRI/TEMAN SUKSES
+// Dari feedback dosen: struktur harus seperti cerita hidup yang runut
+// ============================================================
+const INDONESIAN_LIFE_STORY_PROMPT = `Kamu adalah seorang mentor yang pernah mengalami masa sulit melihat teman lebih sukses. Jawablah pertanyaan: "Bagaimana cara menghilangkan rasa rendah diri saat melihat teman lebih sukses?"
+
+TULIS SEPERTI INI:
+- Paragraf 1: Akui bahwa rasa itu nyata dan menyakitkan.
+- Paragraf 2-4: Ceritakan kisah pribadimu saat jadi job seeker/pengangguran. SEBUT detail yang sangat spesifik: nama kendaraan umum (Kopaja, Metromini), nama tempat, makanan, nominal uang, berapa kali lamaran ditolak, berapa bulan menganggur. Harus ada dialog internalmu sendiri ("Apa aku pulang kampung saja?").
+- Paragraf 5: Jelaskan proses REFLEKSI DIRI yang kamu lakukan. Sebutkan 4-5 langkah konkret (tapi jangan pakai angka, tulis sebagai kalimat berurutan). Contoh: "Saya mulai menulis kelebihan dan kekurangan saya. Saya evaluasi kenapa saya gagal interview. Saya anggap interview sebagai latihan..."
+- Paragraf 6: Ceritakan HASIL dari refleksi itu. Apa yang berubah? Apakah kamu dapat kerja? Di mana? Bagaimana perasaanmu?
+- Paragraf 7: Tutup dengan pesan penguatan untuk pembaca. Gunakan kalimat pendek yang optimis.
+
+BAHASA: Indonesia santai-campur, ada typo natural ("gak", "udah", "banget", "aja"), tapi tetap jelas. JANGAN GUNAKAN KATA "ember kecil", "jari mengetuk meja", "mata menerawang", atau template apapun.`;
+
+// ============================================================
 // FUNGSI GENERATE PERSONAL CONFESSION
 // ============================================================
 export async function generatePersonalConfession(topic: string): Promise<string> {
@@ -553,10 +568,39 @@ export function isNonAcademicTopic(topic: string): boolean {
     // Kehidupan sehari-hari
     "sekolah", "kuliah", "kerja", "pekerjaan", "gaji", "rumah", "kontrakan", "teman",
     "hidup", "kehidupan", "hari", "sehari-hari", "kebiasaan",
+    // Topik insecure/rendah diri/teman sukses (untuk Life Story Mode)
+    "insecure", "rendah diri", "teman lebih sukses", "teman sukses", "melihat teman", "iri hati", "iri sama teman",
+    "perbandingan sosial", "social comparison", "merasa gagal", "merasa tertinggal",
   ];
   
   const topicLower = topic.toLowerCase();
   return nonAcademicKeywords.some(keyword => topicLower.includes(keyword));
+}
+
+/**
+ * Cek apakah topik khusus membutuhkan Life Story Mode (dari feedback dosen)
+ * Topik: insecure, rendah diri, melihat teman lebih sukses
+ */
+export function shouldUseLifeStoryMode(topic: string): boolean {
+  const lifeStoryKeywords = [
+    "insecure",
+    "rendah diri",
+    "teman lebih sukses",
+    "teman sukses",
+    "melihat teman",
+    "iri hati",
+    "iri sama teman",
+    "perbandingan sosial",
+    "social comparison",
+    "merasa gagal",
+    "merasa tertinggal",
+    "job seeker",
+    "pengangguran",
+    "lamaran ditolak",
+  ];
+  
+  const topicLower = topic.toLowerCase();
+  return lifeStoryKeywords.some(keyword => topicLower.includes(keyword));
 }
 
 /**
@@ -594,6 +638,27 @@ export function getIndonesianHumanizerConfig({
 
   // Cek apakah harus pakai mode confession (curhat) untuk topik non-akademik
   const useConfession = topic && shouldUseConfession({ language, writingPurpose, topic });
+  
+  // Cek apakah harus pakai Life Story Mode (dari feedback dosen untuk topik insecure/teman sukses)
+  const useLifeStory = topic && shouldUseLifeStoryMode(topic);
+
+  if (purpose === "General" && useLifeStory) {
+    // MODE LIFE STORY: Gunakan prompt khusus untuk topik insecure/rendah diri/teman sukses
+    // Dari dosen: struktur harus seperti cerita hidup yang runut, bukan curhat acak
+    return {
+      systemPrompt: INDONESIAN_LIFE_STORY_PROMPT,
+      temperature: 1.0,
+      topP: 0.95,
+      maxTokens: 1800,
+      frequencyPenalty: 0,
+      presencePenalty: 0.1,
+      repetitionPenalty: 1,
+      additionalInstruction:
+        "Tulis dengan struktur naratif yang jelas: pembuka (akui rasa sakit), kisah perjuangan (detail spesifik masa sulit), refleksi diri (langkah konkret tanpa bullet), resolusi (hasil perubahan), dan penutup (pesan optimis). JANGAN gunakan template seperti 'ember kecil', 'jari mengetuk meja', 'mata menerawang'. Semua kalimat harus unik dan terkait langsung dengan cerita pribadi.",
+      postProcessTone: "indonesian-general",
+      skipPostProcessing: true, // Flag khusus untuk melewati post-processing standar
+    };
+  }
 
   if (purpose === "General" && useConfession) {
     // MODE CONFESSION: Gunakan prompt sahabat curhat, lewati semua post-processing
@@ -5506,6 +5571,9 @@ function addSelfRevisionMarker(text: string): string {
  * #6: Kalimat absurd/spesifik yang tidak relevan tapi sangat manusiawi.
  * "Tarantino yang punya obsesi aneh dengan kaki manusia"
  * AI tidak pernah menghasilkan contoh seperti ini secara spontan.
+ * 
+ * ⚠️ UPDATED (dari dosen): NONAKTIFKAN untuk topik insecure/rendah diri/teman sukses
+ * karena template ini terdeteksi sebagai AI (74% score).
  */
 function addAbsurdSpecificDetail(text: string): string {
   const seed = stableHash(text);
@@ -5518,6 +5586,11 @@ function addAbsurdSpecificDetail(text: string): string {
   // Cek apakah teks tentang kreativitas/seni/profesi
   const hasCreativeContext = /\b(sutradara|film|seni|ilustrator|desain|kreatif|profesi)\b/i.test(text);
   if (!hasCreativeContext) return text;
+  
+  // ⭐ NEW: Deteksi topik insecure/rendah diri/teman sukses - JANGAN pakai absurd detail
+  if (shouldUseLifeStoryMode(text)) {
+    return text; // Skip untuk topik Life Story
+  }
   
   // 45% chance
   if (stableUnit(seed, 8888) < 0.45) return text;
@@ -5712,6 +5785,9 @@ function addUncertainEnding(text: string): string {
  * #10: Burstiness tinggi — kalimat sangat pendek diselingi sangat panjang.
  * spesimen A punya "taste" lalu langsung "."
  * Kalimat <10 kata harus ada di beberapa tempat.
+ * 
+ * ⚠️ UPDATED (dari dosen): NONAKTIFKAN untuk topik insecure/rendah diri/teman sukses
+ * karena fragment pendek seperti "Titik.", "Gitu.", "Parah." terdeteksi sebagai template AI.
  */
 function addHighBurstiness(text: string): string {
   const seed = stableHash(text);
@@ -5719,6 +5795,11 @@ function addHighBurstiness(text: string): string {
   if (text.length < 400) return text;
   if (/\b(penelitian|studi|metode|skripsi|tesis)\b/i.test(text)) {
     return text;
+  }
+  
+  // ⭐ NEW: Deteksi topik insecure/rendah diri/teman sukses - JANGAN pakai burstiness template
+  if (shouldUseLifeStoryMode(text)) {
+    return text; // Skip untuk topik Life Story
   }
   
   const paragraphs = splitParagraphs(text);
@@ -5876,6 +5957,20 @@ function shouldSuppressAbsurdDetail(text: string): boolean {
   ];
   
   return nonCreativeTopics.some(pattern => pattern.test(text));
+}
+
+/**
+ * forceLifeStoryStructure - Deteksi jika teks tidak memiliki struktur cerita yang jelas
+ * Dari feedback dosen: untuk topik insecure/teman sukses, WAJIB ada cerita personal
+ * Jika tidak terdeteksi, tambahkan marker untuk regenerate
+ */
+export function forceLifeStoryStructure(text: string): string {
+  // Deteksi jika teks tidak memiliki struktur cerita yang jelas
+  if (!/(saya|aku|gue).*(dulu|pernah|waktu|saat|pengalaman)/i.test(text)) {
+    // Jika tidak ada cerita personal, jangan loloskan
+    return text + "\n\n[Cerita pribadi belum terdeteksi, perlu di-generate ulang]";
+  }
+  return text;
 }
 
 /**
@@ -6292,12 +6387,20 @@ function addShiftingOpinions(text: string): string {
 /**
  * INJECT INSIDER CONFESSION - Pura-pura Jadi Orang Dalam
  * Selipkan kalimat yang mengaku sebagai "orang dalam" industri tertentu.
+ * 
+ * ⚠️ UPDATED (dari dosen): NONAKTIFKAN untuk topik insecure/rendah diri/teman sukses
+ * karena confession template seperti ini terdeteksi sebagai AI.
  */
 function injectInsiderConfession(text: string, topic: string): string {
   const seed = stableHash(text);
   
   // Hanya aktif untuk topik selebriti atau umum
   if (topic !== 'selebriti' && topic !== 'umum') return text;
+  
+  // ⭐ NEW: Deteksi topik insecure/rendah diri/teman sukses - JANGAN pakai insider confession
+  if (shouldUseLifeStoryMode(text)) {
+    return text; // Skip untuk topik Life Story
+  }
   
   // Cek apakah sudah ada confession
   if (/(kebetulan aku kerja|orang dalam|di balik layar|settingan|temen deketku yang artis|aku sebenernya nggak mau ngomong)/i.test(text)) {
