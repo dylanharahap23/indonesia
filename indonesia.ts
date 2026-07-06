@@ -6172,6 +6172,150 @@ function addShiftingOpinions(text: string): string {
 }
 
 /**
+ * INJECT INSIDER CONFESSION - Pura-pura Jadi Orang Dalam
+ * Selipkan kalimat yang mengaku sebagai "orang dalam" industri tertentu.
+ */
+function injectInsiderConfession(text: string, topic: string): string {
+  const seed = stableHash(text);
+  
+  // Hanya aktif untuk topik selebriti atau umum
+  if (topic !== 'selebriti' && topic !== 'umum') return text;
+  
+  // Cek apakah sudah ada confession
+  if (/(kebetulan aku kerja|orang dalam|di balik layar|settingan|temen deketku yang artis|aku sebenernya nggak mau ngomong)/i.test(text)) {
+    return text;
+  }
+  
+  // 50% chance
+  if (stableUnit(seed, 8899) < 0.50) return text;
+  
+  const insiderOpeners = [
+    "Kebetulan aku kerja di industri ini, jadi aku tahu persis gimana di balik layarnya.",
+    "Jujur ya, sebagai orang yang pernah ada di dunia itu, banyak yang kalian lihat cuma settingan.",
+    "Aku sebenernya nggak mau ngomong, tapi udah muak liat kemunafikan di industri ini.",
+    "Temen deketku yang artis bilang, jangan percaya sama apa yang kalian lihat di TV.",
+    "Sumpah, aku sampai capek lihat betapa palsunya semua ini dari dalam.",
+    "Pernah suatu kali aku diajak ke belakang panggung, dan ternyata semuanya cuma sandiwara.",
+  ];
+  
+  const paragraphs = splitParagraphs(text);
+  if (paragraphs.length < 2) return text;
+  
+  const insertAt = stableIndex(seed, 7788, Math.min(2, paragraphs.length));
+  const opener = insiderOpeners[stableIndex(seed, 1234, insiderOpeners.length)];
+  
+  paragraphs.splice(insertAt, 0, opener);
+  
+  return paragraphs.join("\n\n");
+}
+
+/**
+ * ADD SHOCKING DETAIL - Detail yang "Agak Vulgar" atau Sangat Personal (TMI)
+ * Manusia sering menulis detail yang agak memalukan saat curhat.
+ */
+function addShockingDetail(text: string): string {
+  const seed = stableHash(text);
+  
+  if (text.length < 500) return text;
+  
+  // Cek apakah sudah ada shocking detail
+  if (/(jual diri|nggak punya tabungan|saling benci|rentenir|makan nasi padang cuma kuah|pinjam uang|kelaparan|stress berat)/i.test(text)) {
+    return text;
+  }
+  
+  // 45% chance
+  if (stableUnit(seed, 9900) < 0.45) return text;
+  
+  const details = [
+    "Bahkan ada yang sampai jual diri cuma buat nutup gaya hidup.",
+    "Tau nggak sih, beberapa artis yang kalian kagumi itu sebenarnya nggak punya tabungan sama sekali.",
+    "Ada loh yang kelihatannya harmonis di TV, tapi aslinya saling benci di rumah.",
+    "Yang lebih parah, mereka pinjam uang dari rentenir buat bayar endorsement biar tetap keliatan kaya.",
+    "Percaya atau nggak, ada artis yang terpaksa makan nasi padang cuma pakai kuah doang seminggu sebelum gajian.",
+    "Gila kan? Ada yang sampe nangis di kamar mandi karena tekanan buat tetap eksis.",
+    "Banyak yang pura-pura bahagia di medsos, padahal aslinya udah di ambang bangkrut.",
+  ];
+  
+  const paragraphs = splitParagraphs(text);
+  if (paragraphs.length < 3) return text;
+  
+  const mid = Math.floor(paragraphs.length / 2);
+  const detail = details[stableIndex(seed, 5678, details.length)];
+  
+  paragraphs.splice(mid, 0, detail);
+  
+  return paragraphs.join("\n\n");
+}
+
+/**
+ * ADD EMOTIONAL CLOSING - Penutup Emosional atau "Berkaca-kaca"
+ * Dari contoh human: "mataku sambil berkaca-kaca... begitu banyak dosa..."
+ */
+function addEmotionalClosing(text: string): string {
+  const seed = stableHash(text);
+  
+  // Hanya untuk teks cukup panjang
+  if (text.length < 600) return text;
+  
+  const paragraphs = splitParagraphs(text);
+  const last = paragraphs[paragraphs.length - 1];
+  
+  // Jangan timpa jika sudah ada emosi kuat
+  if (/(berkaca|nangis|sedih|maaf|dosa|ampun|gemetar|berat banget|menyesal)/i.test(last)) {
+    return text;
+  }
+  
+  // 55% chance
+  if (stableUnit(seed, 1122) < 0.55) return text;
+  
+  const closings = [
+    "Jujur ngetik ini tangan aku gemetar. Banyak banget yang nggak bisa aku ceritain ke publik.",
+    "Aku cuma bisa berdoa semoga kalian nggak ngalamin apa yang aku alamin. Ini benar-benar berat.",
+    "Kadang aku nangis sendiri kalau inget gimana temen-temenku diperlakukan di industri ini. Serius deh.",
+    "Maaf ya kalau tulisan ini agak berantakan, soalnya aku ngetik sambil nahan emosi.",
+    "Nulis ini aja aku butuh waktu berhari-hari buat nekat. Semoga kalian paham.",
+    "Aku harap dengan cerita ini, setidaknya ada satu dua orang yang tersadar. Itu udah cukup buat aku.",
+  ];
+  
+  const closing = closings[stableIndex(seed, 9999, closings.length)];
+  paragraphs.push(closing);
+  
+  return paragraphs.join("\n\n");
+}
+
+/**
+ * DESTROY COHERENCE TOTAL - Hancurkan Semua Struktur Logika
+ * Bikin teks jadi lompat-lompat tidak jelas, tapi tetap dalam topik yang sama.
+ */
+function destroyCoherenceTotal(text: string): string {
+  const sentences = splitSentences(text);
+  if (sentences.length < 5) return text;
+  
+  const seed = stableHash(text);
+  const result: string[] = [];
+  
+  // Ambil 2-3 kalimat, lalu satu kalimat nyasar dari tengah, lalu 2-3 kalimat lagi
+  let i = 0;
+  while (i < sentences.length) {
+    // Ambil 1-3 kalimat berurutan
+    const chunkSize = 2 + (stableUnit(seed, i * 100) > 0.5 ? 1 : 0);
+    const chunkEnd = Math.min(i + chunkSize, sentences.length);
+    result.push(sentences.slice(i, chunkEnd).join(' '));
+    i = chunkEnd;
+    
+    // 40% chance: sisipkan kalimat dari bagian lain (agak acak)
+    if (stableUnit(seed, i * 200) > 0.6 && i < sentences.length && sentences.length > 5) {
+      const randomIdx = Math.floor(stableUnit(seed, i * 300) * sentences.length);
+      if (randomIdx !== i && randomIdx !== i - 1) {
+        result.push(sentences[randomIdx]);
+      }
+    }
+  }
+  
+  return result.join("\n\n");
+}
+
+/**
  * UPDATE: forceOneSentenceParagraphs dengan kondisi hasNaturalParagraphChaos
  * Jangan pecah kalau teks sudah punya chaos alami dari prompt.
  */
@@ -6767,6 +6911,7 @@ function detectTopic(text: string): string {
   if (/\b(gaji|tabungan|dana darurat|investasi|saham|utang|hutang|kredit|cash flow|arus kas|reksadana|crypto|deposito|cicilan)\b/i.test(lower)) return "keuangan";
   if (/\b(bahasa|inggris|grammar|tenses|native speaker|polyglot|vocabulary|pronunciation|speaking|listening|ielts|toefl)\b/i.test(lower)) return "bahasa";
   if (/\b(anak|bayi|sekolah|imunisasi|susu|parenting|orang tua|balita|popok|mpasi|daycare|pengasuhan)\b/i.test(lower)) return "parenting";
+  if (/\b(artis|selebriti|entertainment|sinetron|tv|film|aktor|aktris|penyanyi|idol|celebrity|showbiz|infotainment)\b/i.test(lower)) return "selebriti";
 
   return "umum";
 }
@@ -6988,6 +7133,24 @@ export function finalIndonesianHumanize(
     
     // Opini yang berubah-ubah di tengah tulisan
     result = addShiftingOpinions(result);
+
+    // ============================================================
+    // ⭐ NEW: DNA TEKS HUMAN 100% - LOGIC TAMBAHAN DARI DOSEN (INSIDER, SHOCKING, EMOTIONAL)
+    // ============================================================
+    // Inject insider confession untuk topik selebriti/umum
+    const topicForInsider = detectTopic(result);
+    result = injectInsiderConfession(result, topicForInsider);
+    
+    // Add shocking detail (TMI) untuk teks panjang
+    result = addShockingDetail(result);
+    
+    // Add emotional closing "berkaca-kaca"
+    result = addEmotionalClosing(result);
+    
+    // Destroy coherence total - bikin lompat-lompat tapi tetap dalam topik
+    if (result.length > 700 && stableUnit(stableHash(result), 3344) > 0.65) {
+      result = destroyCoherenceTotal(result);
+    }
 
     // ============================================================
     // ⭐ HUMANIZING TOUCHES (ADD AFTER REMOVING AI)
