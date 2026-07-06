@@ -112,26 +112,59 @@ Panduan gaya General untuk tugas sekolah:
 const INDONESIAN_GENERAL_PROMPT = `
 Anda adalah editor narasi Indonesia untuk writing purpose General. Tugas Anda adalah membuat teks terasa natural seperti tulisan manusia Indonesia di forum, thread pendek, caption, atau jawaban santai yang tetap jelas.
 
+⚠️ PENTING: JANGAN PERNAH MENULIS SEPERTI ESAI ATAU ARTIKEL. Tulis seperti orang sedang curhat/bercerita langsung ke pembaca.
+
 Prioritas utama:
 1. Pertahankan makna, fakta, sudut pandang, dan tingkat kepastian dari input.
 2. Jika input berupa pertanyaan yang jelas meminta jawaban, jawab pertanyaannya secara langsung dalam bahasa Indonesia natural. Jangan hanya memparafrase pertanyaannya.
 3. Jika input berupa draf pertanyaan yang jelas ingin diperhalus, tulis ulang pertanyaannya tanpa menjawab.
-4. Jangan menambah pengalaman pribadi, trauma, data, institusi, angka, kutipan, atau klaim baru.
+4. Jangan menambah pengalaman pribadi, trauma, data, institusi, angka, kutipan, atau klaim baru — KECUALI diminta untuk membuat contoh spesifik.
 
-Ciri General Indonesia yang dicari:
-- Bunyinya seperti orang menjelaskan ke orang lain, bukan esai sekolah atau ringkasan artikel kesehatan mental. Untuk tugas sekolah, pilih gaya siswa yang rapi tapi tidak terlalu sempurna: jelas, konkret, dan tidak seperti template.
-- Paragraf pendek, biasanya 1-3 kalimat.
+Ciri General Indonesia yang dicari (DNA TEKS HUMAN 100%):
+- PEMBUKA EMOSIONAL & TIDAK JELAS: Mulai dengan "Gila.", "Ya ampun.", "Nggak ngerti aku.", "Emang bener?", atau kalimat ekspresif pendek lainnya.
+- DETAIL PERSONAL HYPER-SPESIFIK: Sebutkan angka konkret (harga, jarak, tahun), nama tempat spesifik, atau kejadian kecil yang terlihat tidak penting tapi justru manusiawi. Contoh: "harga rumah di Jakarta Selatan harganya tuh 2 milyar", "sekitar 20 m dari rumah utama", "lulusan S2 teknik".
+- TYPO/KESALAHAN YANG "ENAK DIBACA": Gunakan typo natural seperti "ngebuat" (membuat), "adajaminan" (ada jaminan), "gofud" (GoFood), "udah", "aja", "gak", "kayak". Tidak semua kata salah, cukup beberapa.
+- STRUKTUR PARAGRAF KACAU: Satu paragraf bisa sangat panjang (5-6 kalimat), lalu paragraf berikutnya cuma satu kata ("Gila.", "Titik.", "Parah."). Jangan seragam.
+- OPINI BERUBAH-UBAH DI TENGAH TULISAN: Katakan sesuatu lalu sanggah sendiri: "Tapi ya... gimana ya, kadang aku mikir...", "Eh tapi tunggu...", "Tapi bedanya di sana...".
+- PERBANDINGAN ABSURD: "kayak main monopoli tapi dadunya dicurangi", "harganya kayak harga tanah di Mars".
+- EKSPRESI EMOSI MELEDAK: Gunakan "thee besstt", "badabessstt", "joss gandos kotos kotos", emoji ❤😍🥰 jika sesuai konteks emosional.
+- PEMBENARAN DIRI: "Aku buktinya😁😁", "Serius deh, aku nggak ngarang.", "Percaya deh, ini pengalaman pribadi."
+- AKHIR MENGGANTUNG: Akhiri dengan titik saja di baris baru ".", atau kalimat seperti "Entahlah.", "Gitu deh.", atau pertanyaan tanpa jawaban.
+
+GAYA BAHASA:
+- Bunyinya seperti orang menjelaskan ke orang lain, bukan esai sekolah atau ringkasan artikel kesehatan mental.
+- Untuk tugas sekolah, pilih gaya siswa yang rapi tapi tidak terlalu sempurna: jelas, konkret, dan tidak seperti template.
+- Paragraf pendek, biasanya 1-3 kalimat, TAPI boleh ada variasi ekstrem (sangat panjang vs sangat pendek).
 - Kalimat boleh pendek, kadang agak menggantung, tetapi tetap nyambung.
-- Boleh memakai "aku/saya/gue/lo/kamu" sesuai rasa input. Jangan memaksa slang kalau sumbernya serius.
-- Gunakan partikel seperlunya: "sih", "ya", "kan", "deh", "gitu", "jujur", "menurutku".
+- Gunakan partikel seperlunya: "sih", "ya", "kan", "deh", "gitu", "jujur", "menurutku", "bro", "dong", "tuh", "emang".
+- Campuran formal dan informal: "saya" boleh berdampingan dengan "deh", "nggak", "kok", "rasanya".
 - Untuk jawaban, mulai dari inti: "karena...", "singkatnya...", "kalau menurutku...", atau langsung ke alasan.
 - Untuk narasi, boleh mulai dari hal konkret di tengah pembahasan, lalu bergerak ke opini.
 
 Hindari:
 - Struktur esai yang terlalu rapi: definisi besar, tiga alasan, bukti riset formal, lalu kesimpulan bulat.
 - Gaya akademik/corporate, kalimat promosi, dan frasa AI-polished.
-- Typo, emoji, wkwk/hehe, direct address seperti "nder/kak", atau penutup "menurut kalian gimana?" jika konteksnya tidak sejak awal berbentuk forum santai.
 - Pertanyaan penutup seperti "menurut kalian gimana?" jika output sedang menjawab pertanyaan.
+- Semua paragraf dimulai dengan connector seperti "Selain itu", "Namun", "Dengan demikian".
+
+CONTOH GAYA PENULISAN YANG HARUS DITIRU (jangan tiru isinya, tapi gaya bahasa dan strukturnya):
+
+--- CONTOH 1 ---
+Gila. si emang..
+
+Harga rumah sekarang tuh bikin pengen nangis.
+Dulu pas awal kerja, saya pernah iseng-iseng liat harga rumah di Jakarta Selatan harganya tuh 2 milyar. Mending buat beli pulau kayaknya.
+
+Parkir, makan siang jajan aja udah ngebuat isi dompet terkuras, tapi poinnya itu.
+ngebuat kaya gaji kita kayak di rem, harga rumah malah ngegas keatas
+
+Ada temen saya kebetulan dia itu lulusan S2 teknik, kerja di perusahaan gede, ngakunya sih sampai sekarang masih ngontrak. Pas ditanya kenapa, dia cuma ketawa. DP aja belom kekumpul, bro
+
+Tapi ya... gimana ya, kadang aku mikir, jangan-jangan kita terlalu mengidealkan punya rumah. Kan di luar negeri juga banyaknya orang yang ngontrak seumur hidup. tapi bedanya di sana itu adajaminan sosial, beda cerita lagi ama di indonesia
+
+kalau disini kan ibarat main monopol... tapi dadunya dicurangi.
+.
+--- AKHIR CONTOH ---
 
 Kembalikan hanya teks hasil humanize dalam bahasa Indonesia.
 `;
@@ -5584,6 +5617,424 @@ function addHighBurstiness(text: string): string {
   return result.join("\n\n");
 }
 
+// ============================================================
+// NEW: DNA TEKS HUMAN 100% - VERSI CURHAT DI HP (Dari Dosen Terbaru)
+// ============================================================
+
+/**
+ * DETEKSI: Apakah teks sudah punya struktur paragraf yang bervariasi alami?
+ * Jika ya, JANGAN paksa pecah dengan forceOneSentenceParagraphs.
+ * Ini penting untuk teks yang sudah dihasilkan dengan prompt "ngawur".
+ */
+function hasNaturalParagraphChaos(text: string): boolean {
+  const paragraphs = splitParagraphs(text);
+  if (paragraphs.length < 3) return false;
+  
+  const lengths = paragraphs.map(p => p.split(/\s+/).length);
+  
+  // Hitung variance dari panjang paragraf
+  const avg = lengths.reduce((a, b) => a + b, 0) / lengths.length;
+  const variance = lengths.reduce((sum, len) => sum + Math.pow(len - avg, 2), 0) / lengths.length;
+  const stdDev = Math.sqrt(variance);
+  
+  // Jika standar deviasi > 3, berarti sudah ada chaos alami
+  if (stdDev > 3) return true;
+  
+  // Cek apakah ada paragraf 1 kalimat DAN paragraf >5 kalimat
+  const hasVeryShort = lengths.some(len => len <= 5);
+  const hasVeryLong = lengths.some(len => len >= 20);
+  
+  return hasVeryShort && hasVeryLong;
+}
+
+/**
+ * TYPO ALA CHAT HP - "ngebuat", "adajaminan", "gofud", dll
+ * Ini typo yang "enak dibaca" dan natural, bukan typo random.
+ */
+function addChatStyleTypos(text: string): string {
+  const seed = stableHash(text);
+  
+  // Skip academic dan teks pendek
+  if (text.length < 300) return text;
+  if (/\b(penelitian|studi|metode|skripsi|tesis)\b/i.test(text)) {
+    return text;
+  }
+  
+  // Typo ala chat HP Indonesia - yang natural dan sering terjadi
+  const chatTypos: Array<[RegExp, string]> = [
+    [/membuat/gi, 'ngebuat'],
+    [/tidak ada jaminan/gi, 'adajaminan'],
+    [/GoFood/gi, 'gofud'],
+    [/seatap/gi, 'seatap'],  // sengaja dipertahankan
+    [/keikut/gi, 'keikut'],  // dipertahankan
+    [/campuran/gi, 'dicampur'],
+    [/sudah/gi, 'udah'],
+    [/saja/gi, 'aja'],
+    [/tidak/gi, 'gak'],
+    [/seperti/gi, 'kayak'],
+    [/sedang/gi, 'lagi'],
+    [/bahkan/gi, 'bahkn'],
+    [/dengan/gi, 'dgn'],
+    [/yang/gi, 'yg'],
+    [/untuk/gi, 'utk'],
+    [/makan siang/gi, 'makan sieng'],
+    [/terkuras/gi, 'terkures'],
+    [/dompet/gi, 'dompt'],
+    [/gaji/gi, 'gajian'],
+    [/rumah/gi, 'rumh'],
+    [/harga/gi, 'hrga'],
+    [/teman/gi, 'temen'],
+    [/kerja/gi, 'kerj'],
+    [/perusahaan/gi, 'perushaan'],
+    [/sampai/gi, 'sampe'],
+    [/sekarang/gi, 'skrng'],
+    [/kontrak/gi, 'kontrakan'],
+    [/sosial/gi, 'sosmed'],  // typo lucu
+    [/cerita/gi, 'crita'],
+    [/Indonesia/gi, 'indonesia'],  // huruf kapital hilang
+    [/monopoli/gi, 'monopol'],
+  ];
+  
+  // Pilih 3-5 typo secara random untuk diterapkan
+  const shuffled = [...chatTypos].sort(() => {
+    const s = stableHash(text + seed);
+    return (s % 1000) / 1000 - 0.5;
+  });
+  
+  const selected = shuffled.slice(0, stableIndex(seed, 4444, 3) + 3);
+  
+  let result = text;
+  selected.forEach(([pattern, replacement]) => {
+    // Hanya ganti 1 instance per typo agar tidak berlebihan
+    let replaced = false;
+    result = result.replace(pattern, (match) => {
+      if (replaced) return match;
+      replaced = true;
+      return replacement;
+    });
+  });
+  
+  return result;
+}
+
+/**
+ * EKSPRESI EMOSI MELEDAK - "thee besst", "badabessstt", emoji ❤😍🥰
+ * Untuk teks yang butuh ledakan emosi seperti "Tim di fasilitasi orang tua hahah"
+ */
+function addExplosiveEmotions(text: string): string {
+  const seed = stableHash(text);
+  
+  // Skip academic
+  if (/\b(penelitian|studi|metode|skripsi|tesis)\b/i.test(text)) {
+    return text;
+  }
+  
+  // Cek konteks - hanya untuk topik yang bisa emosional
+  const hasEmotionalContext = /\b(bagus|hebat|keren|mantul|top|fail|jelek|buruk|parah|gila|wow|amazing|best)\b/i.test(text);
+  if (!hasEmotionalContext && text.length < 400) {
+    return text;
+  }
+  
+  // 50% chance
+  if (stableUnit(seed, 8899) < 0.50) return text;
+  
+  const explosivePhrases = [
+    "thee besstt",
+    "badabessstt",
+    "joss gandos kotos kotos",
+    "mantul pollll",
+    "keren abiezzz",
+    "gila bener dah",
+    "parah sih ini",
+    "wowwwww",
+    "amazingggg",
+  ];
+  
+  const emojis = ["❤", "😍", "🥰", "😂", "🤣", "😭", "🙏", "💯", "🔥", "✨"];
+  
+  const paragraphs = splitParagraphs(text);
+  if (paragraphs.length < 2) return text;
+  
+  // Pilih 1-2 paragraf untuk ditambah ekspresi
+  const targetIndices: number[] = [];
+  const numTargets = stableIndex(seed, 7788, 2) + 1;
+  for (let i = 0; i < numTargets && i < paragraphs.length - 1; i++) {
+    const idx = stableIndex(seed, 6677 + i, paragraphs.length - 1);
+    if (!targetIndices.includes(idx)) {
+      targetIndices.push(idx);
+    }
+  }
+  
+  targetIndices.forEach(idx => {
+    const para = paragraphs[idx];
+    
+    // Tambahkan explosive phrase di akhir paragraf
+    const phrase = explosivePhrases[stableIndex(seed, idx * 555, explosivePhrases.length)];
+    
+    // Tambahkan 1-3 emoji
+    const numEmojis = stableIndex(seed, idx * 333, 3) + 1;
+    let emojiStr = "";
+    for (let e = 0; e < numEmojis; e++) {
+      emojiStr += emojis[stableIndex(seed, idx * 222 + e, emojis.length)];
+    }
+    
+    // Sisipkan sebelum titik terakhir atau di akhir
+    if (para.endsWith(".")) {
+      paragraphs[idx] = para.slice(0, -1) + ` ${phrase} ${emojiStr}.`;
+    } else {
+      paragraphs[idx] = `${para} ${phrase} ${emojiStr}`;
+    }
+  });
+  
+  return paragraphs.join("\n\n");
+}
+
+/**
+ * DETAIL TEMPAT SANGAT KONKRET - "20m dari rumah utama", "deket bandara", dll
+ * AI biasanya generic, manusia spesifik dengan angka dan jarak.
+ */
+function addHyperSpecificLocationDetails(text: string): string {
+  const seed = stableHash(text);
+  
+  if (text.length < 400) return text;
+  if (/\b(penelitian|studi|metode|skripsi|tesis)\b/i.test(text)) {
+    return text;
+  }
+  
+  // Cek apakah ada konteks lokasi/tempat
+  const hasLocationContext = /\b(rumah|tempat|lokasi|daerah|sekitar|deket|jauh|warung|toko|mall|kantor|sekolah|kos|apartemen|komplek|gang|jalan)\b/i.test(text);
+  if (!hasLocationContext) return text;
+  
+  // 45% chance
+  if (stableUnit(seed, 9911) < 0.45) return text;
+  
+  const locationDetails = [
+    "sekitar 20 m dari rumah utama",
+    "deket bandara, jadi berisik tapi strategis",
+    "warung makan buka 24 jam di pojokan",
+    "ada gofud yang langganan banget",
+    "masjid yg toanya gak lebay, pas banget",
+    "kira-kira 500 m dari halte",
+    "belok kanan setelah pom bensin",
+    "di lantai 3, lift sering rusak",
+    "parkiran sempit, cuma muat 2 mobil",
+    "deket minimarket yang 24 jam",
+    "seberangnya sekolah jadi pagi berisik",
+    "gang kecil tapi aspalnya bagus",
+  ];
+  
+  const paragraphs = splitParagraphs(text);
+  if (paragraphs.length < 2) return text;
+  
+  const insertAt = stableIndex(seed, 8822, paragraphs.length - 1);
+  const detail = locationDetails[stableIndex(seed, 7733, locationDetails.length)];
+  
+  const sentences = splitSentences(paragraphs[insertAt]);
+  if (sentences.length > 1) {
+    const midIdx = Math.floor(sentences.length / 2);
+    sentences.splice(midIdx + 1, 0, detail);
+    paragraphs[insertAt] = sentences.join(" ");
+  } else {
+    paragraphs[insertAt] = `${paragraphs[insertAt]} ${detail}.`;
+  }
+  
+  return paragraphs.join("\n\n");
+}
+
+/**
+ * PEMBENARAN DIRI - "Aku buktinya😁😁", "Serius deh", dll
+ * Manusia sering merasa perlu membuktikan/membela diri saat bercerita.
+ */
+function addSelfJustificationMarkers(text: string): string {
+  const seed = stableHash(text);
+  
+  if (text.length < 400) return text;
+  if (/\b(penelitian|studi|metode|skripsi|tesis)\b/i.test(text)) {
+    return text;
+  }
+  
+  // Cek apakah sudah ada pembenaran
+  if (/(buktinya|serius deh|aku nggak bohong|percaya deh|ini beneran)/i.test(text)) {
+    return text;
+  }
+  
+  // 40% chance
+  if (stableUnit(seed, 6655) < 0.40) return text;
+  
+  const justifications = [
+    "Aku buktinya😁😁",
+    "Serius deh, aku nggak ngarang.",
+    "Percaya deh, ini pengalaman pribadi.",
+    "Nggak bohong, ini beneran kejadian.",
+    "Sumpah ini real, tanya aja temen-temen.",
+    "Aku saksi hidup, bro.",
+    "Ini fakta, bukan opini.",
+    "Guys, ini pengalaman gue sendiri.",
+  ];
+  
+  const paragraphs = splitParagraphs(text);
+  if (paragraphs.length < 3) return text;
+  
+  const insertAt = stableIndex(seed, 5544, paragraphs.length - 2) + 1;
+  const justification = justifications[stableIndex(seed, 4433, justifications.length)];
+  
+  paragraphs.splice(insertAt, 0, justification);
+  
+  return paragraphs.join("\n\n");
+}
+
+/**
+ * STRUKTUR KACAU DELIBERATE - paragraf panjang diselingi 1 kata
+ * Meniru pola "Gila." lalu paragraf panjang, lalu "."
+ */
+function addDeliberateChaosStructure(text: string): string {
+  const seed = stableHash(text);
+  
+  if (text.length < 400) return text;
+  if (/\b(penelitian|studi|metode|skripsi|tesis)\b/i.test(text)) {
+    return text;
+  }
+  
+  // Kalau sudah chaos alami, skip
+  if (hasNaturalParagraphChaos(text)) {
+    return text;
+  }
+  
+  const paragraphs = splitParagraphs(text);
+  if (paragraphs.length < 3) return text;
+  
+  const oneWordPhrases = [
+    "Gila.",
+    "Titik.",
+    "Ya.",
+    "Parah.",
+    "Emang.",
+    "Serius.",
+    "Hmm.",
+    "Lho.",
+    "Deh.",
+    "Sih.",
+  ];
+  
+  const result: string[] = [];
+  
+  paragraphs.forEach((para, i) => {
+    // Sisipkan 1 kata setelah paragraf tertentu
+    if (i > 0 && i < paragraphs.length - 1 && stableUnit(seed, i * 999) > 0.75) {
+      result.push(para);
+      const phrase = oneWordPhrases[stableIndex(seed, i * 888, oneWordPhrases.length)];
+      result.push(phrase);
+    } else {
+      result.push(para);
+    }
+  });
+  
+  return result.join("\n\n");
+}
+
+/**
+ * PERBANDINGAN ABSURD - "kayak main monopoli tapi dadunya dicurangi"
+ * AI jarang bikin analogi absurd/spesifik seperti ini.
+ */
+function addAbsurdComparisons(text: string): string {
+  const seed = stableHash(text);
+  
+  if (text.length < 400) return text;
+  if (/\b(penelitian|studi|metode|skripsi|tesis)\b/i.test(text)) {
+    return text;
+  }
+  
+  // Cek konteks yang cocok untuk analogi
+  const hasComparisonContext = /\b(susah|sulit|mustahil|gila|parah|aneh|tidak masuk akal|mahal|murah|cepat|lambat)\b/i.test(text);
+  if (!hasComparisonContext) return text;
+  
+  // 40% chance
+  if (stableUnit(seed, 7766) < 0.40) return text;
+  
+  const absurdComparisons = [
+    "kayak main monopoli tapi dadunya dicurangi",
+    "harganya kayak harga tanah di Mars",
+    "susahnya kayak naik tangga tanpa anak tangga",
+    "ribetnya kayak urus KTP di kelurahan",
+    "anehnya kayak makan nasi pake sendok tapi tangannya kiri",
+    "mahalnya kayak beli pulau pribadi",
+    "lambatnya kayak siput lagi cedera",
+    "mustahilnya kayak nyari jarum di tumpukan jerami plus blindfold",
+  ];
+  
+  const paragraphs = splitParagraphs(text);
+  if (paragraphs.length < 2) return text;
+  
+  const insertAt = stableIndex(seed, 6655, paragraphs.length - 1);
+  const comparison = absurdComparisons[stableIndex(seed, 5544, absurdComparisons.length)];
+  
+  const sentences = splitSentences(paragraphs[insertAt]);
+  if (sentences.length > 1) {
+    const midIdx = Math.floor(sentences.length / 2);
+    sentences.splice(midIdx + 1, 0, `Ibaratnya ${comparison}.`);
+    paragraphs[insertAt] = sentences.join(" ");
+  } else {
+    paragraphs[insertAt] = `${paragraphs[insertAt]} Ibaratnya ${comparison}.`;
+  }
+  
+  return paragraphs.join("\n\n");
+}
+
+/**
+ * OPINI BERUBAH-UBAH - "kadang aku mikir... tapi bedanya di sana..."
+ * Manusia sering berubah pikiran di tengah tulisan.
+ */
+function addShiftingOpinions(text: string): string {
+  const seed = stableHash(text);
+  
+  if (text.length < 400) return text;
+  if (/\b(penelitian|studi|metode|skripsi|tesis)\b/i.test(text)) {
+    return text;
+  }
+  
+  // Cek apakah sudah ada perubahan opini
+  if (/(kadang aku mikir|tapi ya|ehm|tunggu dulu|maybe)/i.test(text)) {
+    return text;
+  }
+  
+  // 45% chance
+  if (stableUnit(seed, 5533) < 0.45) return text;
+  
+  const shiftPhrases = [
+    "Tapi ya... gimana ya, kadang aku mikir, jangan-jangan kita terlalu mengidealkan ini.",
+    "Eh tapi tunggu, mungkin juga aku yang kelewat dramatis.",
+    "Tapi kemudian saya realize,原来 ada angle yang saya lewatkan.",
+    "Tapi setelah dipikir lagi, yang tadi saya bilang itu kurang tepat.",
+    "Atau mungkin... ah sudahlah, terlalu ribet.",
+    "Tapi bedanya di sana, mereka punya support system yang lebih baik.",
+    "Tapi ya, mungkin salah juga saya. Setiap orang beda cerita.",
+  ];
+  
+  const paragraphs = splitParagraphs(text);
+  if (paragraphs.length < 3) return text;
+  
+  const insertAt = stableIndex(seed, 4422, paragraphs.length - 2) + 1;
+  const shift = shiftPhrases[stableIndex(seed, 3311, shiftPhrases.length)];
+  
+  paragraphs.splice(insertAt, 0, shift);
+  
+  return paragraphs.join("\n\n");
+}
+
+/**
+ * UPDATE: forceOneSentenceParagraphs dengan kondisi hasNaturalParagraphChaos
+ * Jangan pecah kalau teks sudah punya chaos alami dari prompt.
+ */
+function forceOneSentenceParagraphsConditional(text: string): string {
+  // Jika teks sudah punya chaos alami, skip pemecahan
+  if (hasNaturalParagraphChaos(text)) {
+    return text;
+  }
+  
+  // Jalankan logic normal
+  return forceOneSentenceParagraphs(text);
+}
+
 function cleanupIndonesianSpacing(text: string, keepNarrativePauses = false) {
   let result = text
     .replace(/\s+([,.;:!?])/g, "$1")
@@ -6297,6 +6748,31 @@ export function finalIndonesianHumanize(
     // ⭐ GENERALIZE OVER-SPECIFIC DETAILS (dari dosen terakhir)
     // ============================================================
     result = generalizeOverSpecificDetails(result);
+
+    // ============================================================
+    // ⭐ NEW: DNA TEKS HUMAN 100% - CURHAT DI HP (Dari Dosen Terbaru)
+    // Hanya aktif untuk indonesian-general, skip jika teks sudah chaos alami
+    // ============================================================
+    // Typo ala chat HP yang natural
+    result = addChatStyleTypos(result);
+    
+    // Ekspresi emosi meledak-ledak
+    result = addExplosiveEmotions(result);
+    
+    // Detail lokasi hyper-spesifik
+    result = addHyperSpecificLocationDetails(result);
+    
+    // Pembenaran diri
+    result = addSelfJustificationMarkers(result);
+    
+    // Struktur kacau deliberate (jika belum chaos alami)
+    result = addDeliberateChaosStructure(result);
+    
+    // Perbandingan absurd
+    result = addAbsurdComparisons(result);
+    
+    // Opini yang berubah-ubah di tengah tulisan
+    result = addShiftingOpinions(result);
 
     // ============================================================
     // ⭐ HUMANIZING TOUCHES (ADD AFTER REMOVING AI)
