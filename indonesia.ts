@@ -5119,6 +5119,471 @@ function capitalizeFirst(text: string) {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
+// ============================================================
+// CRITICAL HUMAN SIGNATURES — Wajib Ditambahkan (Dari Dosen)
+// ============================================================
+
+/**
+ * #1: Pecah SEMUA paragraf menjadi 1 kalimat.
+ * Ini adalah pola yang paling kuat di spesimen A.
+ * generated_prob 0.00001 hanya bisa dicapai dengan ini.
+ */
+function forceOneSentenceParagraphs(text: string): string {
+  const seed = stableHash(text);
+  
+  // Academic tidak boleh dipecah — skripsi punya konvensi berbeda
+  if (/\b(penelitian|studi|metode|skripsi|tesis)\b/i.test(text)) {
+    return text;
+  }
+  
+  // Kalau teks pendek, jangan pecah — malah jadi tidak natural
+  if (text.length < 400) return text;
+  
+  const paragraphs = splitParagraphs(text);
+  if (paragraphs.length === 0) return text;
+  
+  // Target: 70% paragraf jadi 1 kalimat
+  const result: string[] = [];
+  
+  paragraphs.forEach((para, i) => {
+    const sentences = splitSentences(para);
+    
+    sentences.forEach((sentence, j) => {
+      // Skip paragraf pertama (bukaannya)
+      if (i === 0 && j === 0) {
+        result.push(para);
+        return;
+      }
+      
+      // Skip paragraf terakhir
+      if (i === paragraphs.length - 1) {
+        result.push(para);
+        return;
+      }
+      
+      // 70% chance: pecah jadi 1 kalimat
+      if (stableUnit(seed, i * 100 + j) > 0.30) {
+        result.push(sentence);
+      } else {
+        // Gabung 2 kalimat jadi 1 paragraf
+        const next = sentences[j + 1];
+        if (next) {
+          result.push(sentence + " " + next);
+        } else {
+          result.push(sentence);
+        }
+      }
+    });
+  });
+  
+  return result.join("\n\n");
+}
+
+/**
+ * #2: Kalimat pembuka ekstrem — buka dengan 1-2 kata.
+ * "Tidak bisa." adalah senjata pamungkas.
+ * Ini menurunkan generated_prob dari 0.8 ke 0.00001.
+ */
+function addExtremeOpening(text: string): string {
+  const seed = stableHash(text);
+  
+  // Skip kalau sudah ada opening ekstrem
+  if (/^(Tidak bisa|Gila|Ya gitulah|Nggak|Deh|Santai)\./i.test(text)) {
+    return text;
+  }
+  
+  // Skip academic
+  if (/\b(penelitian|studi|metode|skripsi|tesis)\b/i.test(text)) {
+    return text;
+  }
+  
+  const paragraphs = splitParagraphs(text);
+  if (paragraphs.length === 0) return text;
+  
+  // 60% chance
+  if (stableUnit(seed, 9999) < 0.60) return text;
+  
+  const openings = [
+    "Tidak bisa.",
+    "Gila.",
+    "Ya gitulah.",
+    "Nggak.",
+    "Emang.",
+    "Titik.",
+    "Serius.",
+    "Parah.",
+    "Hmm.",
+    "Beneran.",
+  ];
+  
+  const opening = openings[stableIndex(seed, 1111, openings.length)];
+  
+  // Sisipkan di paragraf ke-2 atau ke-3
+  const insertAt = Math.min(2, paragraphs.length - 1);
+  paragraphs.splice(insertAt, 0, opening);
+  
+  return paragraphs.join("\n\n");
+}
+
+/**
+ * #3: Titik menggantung di akhir teks.
+ * spesimen A diakhiri "\n." — ini sangat manusiawi.
+ */
+function addTrailingDot(text: string): string {
+  const seed = stableHash(text);
+  
+  if (/\.\n\.\n$/i.test(text)) return text;
+  
+  // 50% chance
+  if (stableUnit(seed, 7777) > 0.50) return text;
+  
+  // Skip academic
+  if (/\b(penelitian|studi|metode|skripsi|tesis)\b/i.test(text)) {
+    return text;
+  }
+  
+  const paragraphs = splitParagraphs(text);
+  if (paragraphs.length === 0) return text;
+  
+  const lastPara = paragraphs[paragraphs.length - 1];
+  
+  // Kalau paragraf terakhir pendek, tambah titik lagi
+  if (lastPara.split(/\s+/).length < 15) {
+    return text.trim() + "\n.";
+  }
+  
+  return text.trim();
+}
+
+/**
+ * #4: Typo spesifik yang manusiawi.
+ * "Christoper Nolan" — typo pada nama yang DIKETAHUI.
+ * AI tidak pernah salah ketik nama terkenal.
+ */
+function addSpecificTypo(text: string): string {
+  const seed = stableHash(text);
+  
+  // Skip academic dan teks pendek
+  if (text.length < 500) return text;
+  if (/\b(penelitian|studi|metode|skripsi|tesis)\b/i.test(text)) {
+    return text;
+  }
+  
+  // Typo yang spesifik (nama terkenal, kata umum)
+  const typoPairs: Array<[string, string]> = [
+    ["Christopher", "Christoper"],     // typo spesifik nama
+    ["Tarantino", "Tarentino"],       // swap huruf
+    ["Denis Villeneuve", "Denis Villeneuf"],
+    ["bahwa", "bahwsa"],              // typo di tengah kalimat
+    ["karena", "karnea"],             // swap huruf
+    ["dengan", "denga"],              // huruf hilang
+    ["sudah", "sudaj"],               // typo umum
+    ["tidak", "tidk"],                // huruf hilang
+  ];
+  
+  const appliedTypo = typoPairs[stableIndex(seed, 3333, typoPairs.length)];
+  
+  // Cek apakah teks mengandung kata yang akan di-typo-kan
+  if (text.includes(appliedTypo[0])) {
+    // Ganti HANYA SATU instance, di tengah kalimat (bukan di awal)
+    let found = false;
+    return text.replace(new RegExp(`\\b${appliedTypo[0]}\\b`, 'i'), (match) => {
+      if (found) return match;
+      found = true;
+      return appliedTypo[1];
+    });
+  }
+  
+  return text;
+}
+
+/**
+ * #5: Meta-revisi — manusia mengoreksi diri sendiri saat menulis.
+ * "Tapi kemudian... saya jadi merevisi pemikiran saya di atas."
+ * AI hampir tidak pernah melakukan ini secara natural.
+ */
+function addSelfRevisionMarker(text: string): string {
+  const seed = stableHash(text);
+  
+  if (text.length < 500) return text;
+  if (/\b(penelitian|studi|metode|skripsi|tesis)\b/i.test(text)) {
+    return text;
+  }
+  if (/(saya jadi|aku jadi|merevisi|merevisi semula)/i.test(text)) {
+    return text;
+  }
+  
+  const paragraphs = splitParagraphs(text);
+  if (paragraphs.length < 3) return text;
+  
+  // 55% chance
+  if (stableUnit(seed, 5555) < 0.55) return text;
+  
+  const revisions = [
+    "Tapi kemudian, melihat hal ini lebih dalam, saya jadi merevisi pemikiran saya di atas.",
+    "Tapi setelah dipikir lagi, yang tadi saya bilang itu kurang tepat.",
+    "Eh, tapi tunggu — mungkin yang saya bilang tadi belum sepenuhnya benar.",
+    "Tapi kemudian saya realize, ada angle yang saya lewatkan.",
+    "Tapi setelah baca ulang, saya jadi ubah cara pandang soal ini.",
+  ];
+  
+  const insertAt = Math.min(paragraphs.length - 2, Math.max(1, stableIndex(seed, 6666, paragraphs.length - 1)));
+  const revision = revisions[stableIndex(seed, 7777, revisions.length)];
+  
+  paragraphs.splice(insertAt, 0, revision);
+  return paragraphs.join("\n\n");
+}
+
+/**
+ * #6: Kalimat absurd/spesifik yang tidak relevan tapi sangat manusiawi.
+ * "Tarantino yang punya obsesi aneh dengan kaki manusia"
+ * AI tidak pernah menghasilkan contoh seperti ini secara spontan.
+ */
+function addAbsurdSpecificDetail(text: string): string {
+  const seed = stableHash(text);
+  
+  if (text.length < 400) return text;
+  if (/\b(penelitian|studi|metode|skripsi|tesis)\b/i.test(text)) {
+    return text;
+  }
+  
+  // Cek apakah teks tentang kreativitas/seni/profesi
+  const hasCreativeContext = /\b(sutradara|film|seni|ilustrator|desain|kreatif|profesi)\b/i.test(text);
+  if (!hasCreativeContext) return text;
+  
+  // 45% chance
+  if (stableUnit(seed, 8888) < 0.45) return text;
+  
+  const absurdDetails = [
+    "Seperti Tarantino yang punya obsesi aneh dengan kaki manusia di setiap filmnya.",
+    "Seperti Christopher Nolan yang menolak CGI untuk adegan tertentu dan bersikeras syuting praktis.",
+    "Yang aneh-aneh tapi justru jadi signature yang ditunggu penggemar.",
+    "Yang kelihatan sepele tapi justru jadi pembeda utama.",
+    "Yang tidak masuk akal tapi justru jadi daya tarik tersendiri.",
+  ];
+  
+  const paragraphs = splitParagraphs(text);
+  if (paragraphs.length < 2) return text;
+  
+  const insertAt = stableIndex(seed, 9999, paragraphs.length - 1);
+  const detail = absurdDetails[stableIndex(seed, 1111, absurdDetails.length)];
+  
+  const sentences = splitSentences(paragraphs[insertAt]);
+  if (sentences.length > 1) {
+    // Sisipkan di tengah paragraf
+    const midIdx = Math.floor(sentences.length / 2);
+    sentences.splice(midIdx + 1, 0, detail);
+    paragraphs[insertAt] = sentences.join(" ");
+  }
+  
+  return paragraphs.join("\n\n");
+}
+
+/**
+ * #7: HINDARI LIST / INSTRUKSI — ini adalah Jebakan Terbesar.
+ * Bagian "Hilangkan struktur esai. Tambahkan contoh..." di spesimen B
+ * punya generated_prob 0.97 — hampir 100% AI.
+ */
+function removeListInstructions(text: string): string {
+  let result = text;
+  
+  // Deteksi list instruksi (kalimat pendek berurutan, pola serupa)
+  const lines = result.split(/\n/);
+  if (lines.length < 3) return result;
+  
+  // Cek apakah ada pola: 3+ baris pendek berurutan (<40 karakter)
+  const shortLines = lines.filter(line => {
+    const trimmed = line.trim();
+    return trimmed.length > 0 && trimmed.length < 50 && !trimmed.match(/^[A-Z]/) && !trimmed.match(/^\(/);
+  });
+  
+  // Jika >50% garis pendek dan berurutan → rusak struktur list
+  if (shortLines.length >= 3) {
+    const joined = shortLines.join(" ");
+    // Convert list jadi kalimat naratif
+    const narrativeVersions = [
+      `Yang perlu dilakukan tuhsimulasi: jangan terlalu rapi, mulai dari poin yang random, tambahin contoh spesifik yang tiba-tiba, buat typo natural, dan selingin dengan kontradiksi.`,
+      `Intinya sih sederhana — jangan keliatan seperti template. Mulai dari mana saja, sisipkan detail nyeleneh, dan biar ada yang terasa janggal sedikit.`,
+      `Pokoknya begini: langsung masuk ke inti tanpa basa-basi, kasih contoh yang spesifik, sisipkan typo natural, dan jangan takut ada kontradiksi kecil.`,
+    ];
+    
+    // Ganti 3+ baris pendek dengan 1 paragraf naratif
+    const seed = stableHash(text);
+    const replacement = narrativeVersions[stableIndex(seed, 2222, narrativeVersions.length)];
+    
+    // Find the block of short lines and replace
+    let inBlock = false;
+    let blockStart = -1;
+    let blockEnd = -1;
+    
+    lines.forEach((line, i) => {
+      const trimmed = line.trim();
+      if (trimmed.length > 0 && trimmed.length < 50 && !trimmed.match(/^[A-Z]/) && !trimmed.match(/^\(/)) {
+        if (!inBlock) {
+          blockStart = i;
+          inBlock = true;
+        }
+        blockEnd = i;
+      } else {
+        if (inBlock && blockEnd - blockStart >= 2) {
+          // Found a block of 3+ short lines
+          const newLines = [...lines];
+          newLines.splice(blockStart, blockEnd - blockStart + 1, replacement);
+          result = newLines.join("\n");
+          return result;
+        }
+        inBlock = false;
+        blockStart = -1;
+        blockEnd = -1;
+      }
+    });
+    
+    // Handle block at end of text
+    if (inBlock && blockEnd - blockStart >= 2) {
+      const newLines = [...lines];
+      newLines.splice(blockStart, blockEnd - blockStart + 1, replacement);
+      result = newLines.join("\n");
+    }
+  }
+  
+  return result;
+}
+
+/**
+ * #8: Vary paragraph opener patterns — hindari AI-like opener uniformity.
+ * AI selalu mulai paragraf dengan "Selain itu", "Namun", "Dengan demikian"
+ * Manusia mulai dengan pola tidak terprediksi.
+ */
+function varyParagraphOpeners(text: string): string {
+  const seed = stableHash(text);
+  const paragraphs = splitParagraphs(text);
+  if (paragraphs.length < 2) return text;
+  
+  const aiOpeners: Array<{ pattern: RegExp; replacements: string[] }> = [
+    { 
+      pattern: /^(Selain itu|Namun|Akan tetapi|Dengan demikian|Oleh karena itu|Lebih lanjut|Selanjutnya|Selanjutnya,)/im,
+      replacements: ["", "", "Tapi ", "Jadi ", "Terus, ", "Lalu ", "Abis itu, ", ""]
+    },
+    {
+      pattern: /^(Secara umum|Pada dasarnya|Dalam konteks ini|Sejalan dengan)/im,
+      replacements: ["", "", "Kalau dilihat ", "Dari situ ", "Jadi intinya ", ""]
+    }
+  ];
+  
+  return paragraphs.map((para, i) => {
+    if (i === 0) return para;
+    
+    let modified = para;
+    aiOpeners.forEach(({ pattern, replacements }) => {
+      if (pattern.test(modified)) {
+        const replacement = replacements[stableIndex(seed, i * 333 + pattern.source.length, replacements.length)];
+        modified = modified.replace(pattern, replacement);
+      }
+    });
+    
+    // Kalau paragraph dimulai dengan connector, kadang drop
+    if (/^(Tapi|Jadi|Terus|Lalu|Abis itu|Sebenernya|Namun|Sebenarnya)/i.test(modified)) {
+      if (stableUnit(seed, i * 444) > 0.4) {
+        modified = modified.replace(/^.+?,\s*/i, "");
+      }
+    }
+    
+    return modified;
+  }).join("\n\n");
+}
+
+/**
+ * #9: End with uncertainty — hindari concluding paragraph yang sempurna.
+ * AI selalu menutup dengan "Dengan demikian", "Jadi intinya"
+ * Manusia sering menutup dengan keraguan atau pertanyaan.
+ */
+function addUncertainEnding(text: string): string {
+  const seed = stableHash(text);
+  
+  if (text.length < 300) return text;
+  if (/\b(penelitian|studi|metode|skripsi|tesis)\b/i.test(text)) {
+    return text;
+  }
+  
+  const paragraphs = splitParagraphs(text);
+  if (paragraphs.length === 0) return text;
+  
+  const lastPara = paragraphs[paragraphs.length - 1];
+  
+  // Skip kalau sudah ada penutup tidak sempurna
+  if (/(\?|gitu sih|tapi ya|entahlah|lihat aja)/i.test(lastPara)) {
+    return text;
+  }
+  
+  // Kalau paragraf terakhir panjang dan terlalu "rapih", rusak
+  if (lastPara.length > 200 && stableUnit(seed, 1234) > 0.55) {
+    const sentences = splitSentences(lastPara);
+    const lastSentence = sentences[sentences.length - 1];
+    
+    // Hapus template penutup
+    let cleaned = lastSentence
+      .replace(/^(Dengan demikian|Oleh karena itu|Dari uraian|Jadi intinya|Kesimpulannya),?\s*/i, "")
+      .trim();
+    
+    const uncertainEndings = [
+      `Tapi ya, mungkin salah juga saya. ${cleaned}`,
+      `Atau mungkin bukan itu maksudnya. ${cleaned}`,
+      `Kalau dipikir lagi, ${cleaned.toLowerCase()}`,
+      `${cleaned} Entahlah, nanti kita lihat saja.`,
+      `${cleaned} Tapi mungkin beda untuk orang lain.`,
+    ];
+    
+    sentences[sentences.length - 1] = uncertainEndings[stableIndex(seed, 5678, uncertainEndings.length)];
+    paragraphs[paragraphs.length - 1] = sentences.join(" ");
+  }
+  
+  return paragraphs.join("\n\n");
+}
+
+/**
+ * #10: Burstiness tinggi — kalimat sangat pendek diselingi sangat panjang.
+ * spesimen A punya "taste" lalu langsung "."
+ * Kalimat <10 kata harus ada di beberapa tempat.
+ */
+function addHighBurstiness(text: string): string {
+  const seed = stableHash(text);
+  
+  if (text.length < 400) return text;
+  if (/\b(penelitian|studi|metode|skripsi|tesis)\b/i.test(text)) {
+    return text;
+  }
+  
+  const paragraphs = splitParagraphs(text);
+  if (paragraphs.length < 2) return text;
+  
+  const shortFragments = [
+    "Titik.",
+    "Gitu.",
+    "Ya.",
+    "Parah.",
+    "Emang.",
+    "Serius.",
+    "Beneran.",
+    "Lho.",
+    "Hmm.",
+    "Santai.",
+  ];
+  
+  const result: string[] = [];
+  
+  paragraphs.forEach((para, i) => {
+    result.push(para);
+    
+    // Sisipkan kalimat sangat pendek setelah 40% paragraf
+    if (i > 0 && i < paragraphs.length - 1 && stableUnit(seed, i * 789) > 0.70) {
+      const fragment = shortFragments[stableIndex(seed, i * 321, shortFragments.length)];
+      result.push(fragment);
+    }
+  });
+  
+  return result.join("\n\n");
+}
+
 function cleanupIndonesianSpacing(text: string, keepNarrativePauses = false) {
   let result = text
     .replace(/\s+([,.;:!?])/g, "$1")
