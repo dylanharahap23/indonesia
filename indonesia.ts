@@ -466,6 +466,49 @@ Sebagian orang tua masih belum memberi perhatian cukup pada kesehatan gigi anak.
 // ============================================================
 // EXPORTED FUNCTIONS
 // ============================================================
+
+/**
+ * Generate human rant from scratch - mengabaikan teks asli sepenuhnya
+ * dan menyuruh model menulis ulang topik dari nol dengan identitas
+ * sebagai manusia yang sedang curhat.
+ * 
+ * @param topic - Topik yang akan ditulis (bukan teks AI yang sudah ada)
+ * @returns Teks bergaya manusia 100% seperti curhat di forum
+ */
+export async function generateHumanRant(topic: string): Promise<string> {
+  // Prompt yang mengunci identitas "manusia biasa", bukan "asisten yang membantu menulis esai"
+  const prompt = `[INST] Anda adalah seorang pengguna forum Quora Indonesia yang biasa saja, bukan penulis. Anda ingin menjawab pertanyaan tentang: ${topic}.
+
+JANGAN MENULIS ESAI. Tulis seperti orang yang sedang emosi, ngetik cepat di HP, tanpa diedit. Harus ada:
+- Kalimat pertama reaksi emosional pendek (contoh: "Gila.", "Ya ampun.", "Serius deh.")
+- Cerita pengalaman pribadi yang SANGAT SPESIFIK: sebut angka, nama teman, tempat, kejadian memalukan, detail yang tidak penting tapi terasa nyata.
+- Bahasa gaul & typo alami: "nggak", "gak", "emang", "ngebuat", "adajaminan"
+- Paragraf tidak seragam: ada yang sangat panjang, ada yang hanya satu kata.
+- JANGAN GUNAKAN kata transisi seperti "selain itu", "oleh karena itu", "dengan demikian".
+- Ubah pikiran di tengah: "Tapi ya... gimana ya...", "Eh, tapi..."
+- Akhiri dengan kalimat menggantung atau titik di baris baru.
+
+Jangan tulis ulang teks apapun. Tulis jawaban baru dari nol dengan gaya itu. [/INST]`;
+
+  // Temperature tinggi (1.1) membuat output lebih liar dan tidak terduga
+  // Catatan: callModel harus di-import dari humanizer.ts atau didefinisikan di tempat lain
+  const response = await callModel('deepseek-chat-v3-0324', prompt, { temperature: 1.1 });
+  
+  return minimalCleanup(response);
+}
+
+/**
+ * Pembersihan minimal untuk menjaga feel alami teks human rant
+ * Hanya bersihkan hal paling dasar tanpa merusak naturalitas
+ */
+function minimalCleanup(text: string): string {
+  return text
+    .replace(/^"/, '') // hapus kutip awal jika ada
+    .replace(/"$/, '') // hapus kutip akhir
+    .replace(/\n{3,}/g, '\n\n') // maks 2 newline
+    .trim();
+}
+
 export function shouldUseIndonesianHumanizer({
   language,
   writingPurpose,
@@ -510,6 +553,8 @@ export function getIndonesianHumanizerConfig({
       additionalInstruction:
         "Jaga suara penulis tetap terasa. Untuk General, pilih gaya narasi atau jawaban natural sesuai input. Jangan sekadar mengganti kata dari draf AI; hilangkan pembuka template, daftar konsep abstrak, transisi beruntun, dan penutup kesimpulan yang terlalu bulat. Untuk tugas sekolah, tulis seperti siswa yang menjawab dengan bahasa sendiri: konkret, tidak terlalu akademik, tidak memakai penutup otomatis, dan jangan menambahkan typo/emoji/slang palsu. Untuk topik emosional seperti kesepian, pakai gaya reflective Medium seperlunya. Untuk topik uang haram, korupsi, dosa, atau kekayaan mendadak, pakai gaya moral-reflektif. Untuk topik relasi, harta, perempuan/laki-laki, dan pasangan, pakai gaya debat relasi Indonesia: frontal secukupnya, konkret, tidak seperti artikel psikologi populer, dan jangan merendahkan kelompok gender. Jangan mengarang pengalaman atau fakta baru. Jika input meminta jawaban, jawab langsung dengan bahasa Indonesia sehari-hari yang jelas; jika hanya meminta rewrite, parafrase tanpa menjawab.",
       postProcessTone: "indonesian-general",
+      // ⭐ NEW: Gunakan generateHumanRant untuk full rewrite sebagai human rant
+      useFullRewriteMode: true,
     };
   }
 
