@@ -1,6 +1,6 @@
 import type { HumanizerPromptConfig } from "./humanizer";
 
-export type IndonesianTargetLanguage = "Indonesian → Indonesian" | "English → Indonesian";
+export type IndonesianTargetLanguage = "Indonesian Ã¢â€ â€™ Indonesian" | "English Ã¢â€ â€™ Indonesian";
 export type IndonesianHumanizerPurpose = "General" | "Academic" | "Professional";
 export type IndonesianPostProcessTone =
   | "indonesian-general"
@@ -93,7 +93,7 @@ Panduan gaya debat relasi Indonesia:
 - Pakai kalimat yang terasa seperti orang sedang berdebat: "ya pikir saja", "mau dibikin seromantis apa pun", "sampai sini paham?", "yang sering bikin orang panas justru bagian ini".
 - Hindari daftar nilai yang terlalu rapi: kepribadian, saling menghargai, nilai sejalan, komitmen. Ubah menjadi situasi konkret: bisa bayar kontrakan, tidak panik tiap akhir bulan, bisa diajak ngobrol saat masalah datang.
 - Jangan menutup dengan kalimat mutiara. Akhiri dengan kesimpulan yang agak getir atau realistis: orang mencari aman, orang berkompromi, dan tidak semua orang mau mengakuinya.
-- Kalau perlu pakai English kecil seperti "that's reality" atau "move on", tetapi jangan kebanyakan.
+- Hindari English filler atau connector seperti "but", "and", "honestly", "basically", atau "that's reality". Kalau perlu menyebut istilah Inggris, pakai hanya istilah yang memang ada di input atau sudah lazim.
 `;
 
 const INDONESIAN_GENERAL_SCHOOL_VOICE_GUIDE = `
@@ -109,6 +109,7 @@ Panduan gaya General untuk tugas sekolah:
 - Jangan selalu menutup dengan kesimpulan besar. Akhiri dengan kalimat yang terasa masih manusia, bukan paragraf penutup otomatis.
 - Jangan mengarang pengalaman pribadi. Kalau input tidak memberi cerita pribadi, cukup pakai pengamatan umum atau opini seperti "menurut saya".
 - Kalau topiknya sensitif seperti seks, relasi, atau tubuh, tetap gunakan bahasa sopan dan tidak vulgar. Fokus pada gagasan umum, bukan detail eksplisit.
+- Jangan mencampur kata sambung Inggris ke kalimat Indonesia. Ubah "but" menjadi "tapi/padahal", "and" menjadi "dan/lalu", dan "honestly" menjadi "jujur" bila memang perlu.
 `;
 
 // ============================================================
@@ -119,7 +120,7 @@ Kamu adalah [NAMA], seorang [USIA] tahun, bukan penulis. Kamu menulis di forum Q
 
 Jangan tulis esai. Tulis seperti kamu berbicara sendiri, dengan aturan:
 
-⚠️ ATURAN MUTLAK - JANGAN DILANGGAR:
+Ã¢Å¡Â Ã¯Â¸Â ATURAN MUTLAK - JANGAN DILANGGAR:
 1. HARUS dimulai dengan kalimat emosional panjang tanpa koma yang benar, seperti: "asli ini pertanyaan yang bikin gue kepikiran terus dari kemarin" atau "gila sih ini topik bikin gue inget masa lalu gue yang kelam"
 2. Gunakan dialog langsung dengan orang lain, sebut nama mereka (pakai nama asli atau inisial), dan sertakan kesalahan ketik alami ("nggak", "gak", "kaga", "aja", "doang", "banget", "bgt").
 3. NARATOR HARUS KACAU: kadang pakai "gue", kadang pakai nama sendiri (sebut nama kamu di tengah cerita), kadang "aku". Jangan konsisten sama sekali. Ini wajib.
@@ -620,7 +621,7 @@ export function shouldUseConfession({
 }
 
 export function isIndonesianTarget(language: string): language is IndonesianTargetLanguage {
-  return language === "Indonesian → Indonesian" || language === "English → Indonesian";
+  return language === "Indonesian Ã¢â€ â€™ Indonesian" || language === "English Ã¢â€ â€™ Indonesian";
 }
 
 export function getIndonesianHumanizerConfig({
@@ -634,13 +635,17 @@ export function getIndonesianHumanizerConfig({
       : writingPurpose === "Academic"
         ? "Academic"
         : "General";
-  const isEnglishSource = language === "English → Indonesian";
+  const isEnglishSource = language === "English Ã¢â€ â€™ Indonesian";
 
   // Cek apakah harus pakai mode confession (curhat) untuk topik non-akademik
-  const useConfession = topic && shouldUseConfession({ language, writingPurpose, topic });
+  const useAcademicNarrative = topic ? isAcademicNarrativeTopic(topic) : false;
+  const useEducationComparison = topic ? isInternationalStudyComparisonTopic(topic) : false;
+  const useSocialMarriage = topic ? isSocialMarriageTopic(topic) : false;
+  const useConfession = topic && !useAcademicNarrative && !useEducationComparison && !useSocialMarriage && shouldUseConfession({ language, writingPurpose, topic });
   
   // Cek apakah harus pakai Life Story Mode (dari feedback dosen untuk topik insecure/teman sukses)
   const useLifeStory = topic && shouldUseLifeStoryMode(topic);
+  const useSportsAnalysis = topic ? isSportsAnalysisTopic(topic) : false;
 
   if (purpose === "General" && useLifeStory) {
     // MODE LIFE STORY: Gunakan prompt khusus untuk topik insecure/rendah diri/teman sukses
@@ -679,7 +684,7 @@ export function getIndonesianHumanizerConfig({
 
   if (purpose === "General") {
     return {
-      systemPrompt: `${INDONESIAN_FORUM_QUORA_PROMPT}\n\n${INDONESIAN_DATASET_INTEGRATION_GUIDE}\n\n${INDONESIAN_REFLECTIVE_MEDIUM_GUIDE}\n\n${INDONESIAN_MORAL_REFLECTIVE_GUIDE}\n\n${INDONESIAN_RELATION_DEBATE_GUIDE}\n\n${INDONESIAN_GENERAL_SCHOOL_VOICE_GUIDE}\n\nTUGAS: Humanize teks pengguna menjadi bahasa Indonesia forum Quora yang natural dengan gaya kacau dan emosional seperti contoh di atas. ${
+      systemPrompt: `${INDONESIAN_FORUM_QUORA_PROMPT}\n\n${INDONESIAN_DATASET_INTEGRATION_GUIDE}\n\n${INDONESIAN_REFLECTIVE_MEDIUM_GUIDE}\n\n${INDONESIAN_MORAL_REFLECTIVE_GUIDE}\n\n${INDONESIAN_RELATION_DEBATE_GUIDE}\n\n${INDONESIAN_GENERAL_SCHOOL_VOICE_GUIDE}\n\n${useSportsAnalysis ? "KHUSUS TOPIK OLAHRAGA: tulis sebagai penggemar sepak bola yang kritis. Mulai dengan pengakuan atau pertanyaan retoris yang relevan, lalu analisis santai ala forum. Pakai bukti dari teks input saja: pertandingan, klub, pemain, statistik, atau momen yang memang disebut. Jangan sisipkan template keuangan, ember, parenting, dokter, produk, atau cerita keluarga. Jangan membuat fakta baru." : ""}\n\n${useAcademicNarrative ? "KHUSUS TOPIK SKRIPSI/SIDANG: tulis sebagai refleksi pribadi + tips santai yang runut. Alurnya wajib fokus: refleksi pribadi soal gugup/blank saat sidang, contoh dialog dosen penguji yang masih masuk konteks, perbandingan sidang vs yudisium/revisi/administrasi, lalu tips praktis tanpa bullet angka. Pakai detail dari input saja; kalau input tidak memberi pengalaman pribadi, gunakan pengamatan umum tanpa mengarang nama/kejadian. Jangan sisipkan kerja, magang, gaji, parenting, dokter, produk, atau template ember." : ""}\n\n${useEducationComparison ? "KHUSUS TOPIK KULIAH LUAR NEGERI/PERBANDINGAN PENDIDIKAN: tulis sebagai curhat informatif, bukan artikel netral. Mulai dari posisi pribadi yang aman seperti menurut saya/pengamatan saya, lalu bahas biaya, seleksi, bahasa, dokumen, dan alasan keluarga sebagai alur cerita. Jangan mengaku pernah kuliah, daftar, atau tinggal di negara tertentu kalau input tidak menyebut. Jangan membuat daftar poin rapi, jangan menutup dengan kesimpulan formal, dan jangan sisipkan template kerja, dokter, parenting, produk, atau ember bocor." : ""}\n\n${useSocialMarriage ? "KHUSUS TOPIK SOSIAL/PERNIKAHAN: tulis seperti opini forum yang blak-blakan tapi tetap sopan. Jangan mulai dengan pembuka netral. Jangan pakai struktur Pertama/Kedua/Ketiga. Bahas tekanan umur, karier, ekonomi, standar keluarga, kesiapan mental, dan risiko salah pilih sebagai alur cerita. Penutup boleh berupa saran receh yang nyata, bukan kesimpulan formal." : ""}\n\nTUGAS: Humanize teks pengguna menjadi bahasa Indonesia forum Quora yang natural dengan gaya kacau dan emosional seperti contoh di atas. ${
         isEnglishSource
           ? "Input dapat berbahasa Inggris; terjemahkan maknanya secara natural ke bahasa Indonesia sehari-hari."
           : "Input sudah berbahasa Indonesia; buat lebih natural tanpa mengubah sudut pandang dan makna."
@@ -691,7 +696,15 @@ export function getIndonesianHumanizerConfig({
       presencePenalty: 0.12,
       repetitionPenalty: 1,
       additionalInstruction:
-        "Jaga suara penulis tetap terasa. Untuk mode Forum Quora ini, WAJIB mengikuti semua aturan dalam prompt: pembuka panjang emosional tanpa koma benar, dialog langsung dengan nama orang, narator kacau (gue/aku/nama sendiri tidak konsisten), typo organik 2-3 kali, struktur paragraf ekstrem (panjang vs satu kata), dan penutup dengan kutipan orang lain atau pengakuan sederhana. Jangan membuat daftar bernomor atau bullet points. Jangan membuat kesimpulan rapi. Tulis seperti manusia yang sedang curhat di Quora.",
+        useAcademicNarrative
+          ? "Untuk topik skripsi/sidang/yudisium, pakai gaya refleksi pribadi + tips santai. Struktur: pembuka soal gugup/blank, cerita sidang dan contoh dialog dosen-penguji dari input bila ada, perbandingan dengan revisi/yudisium/administrasi, lalu tips praktis tanpa bullet angka. Jaga alur refleksi pribadi -> perbandingan sidang vs yudisium -> detail akademik kecil -> kesimpulan. Jangan gunakan template kerja, magang, portofolio, gaji, ember bocor, parenting, dokter, produk, atau detail personal palsu."
+          : useEducationComparison
+            ? "Untuk topik kuliah luar negeri/perbandingan pendidikan, pakai gaya curhat informatif. Jangan buka dengan fakta netral seperti artikel. Buka dengan posisi pengamatan pribadi yang tidak mengarang pengalaman. Ubah alasan berurutan menjadi alur cerita: biaya, seleksi, bahasa, administrasi, keluarga/mental jauh dari rumah. Boleh ada opini subjektif soal gengsi label luar negeri, tapi jangan membuat klaim pengalaman atau data baru."
+            : useSocialMarriage
+              ? "Untuk topik sosial/pernikahan, pakai gaya opini forum yang tegas. Buka dengan hot take yang relevan, ubah poin Pertama/Kedua menjadi narasi, jangan membuat kesimpulan formal, dan tutup dengan saran praktis yang masih nyambung. Jangan mengarang pengalaman pribadi atau data baru."
+              : useSportsAnalysis
+              ? "Untuk topik olahraga, pakai gaya analisis santai ala forum bola: akui konteks, bahas 2-3 alasan dengan bukti dari input, beri opini pribadi, lalu tutup dengan kesimpulan yang tajam. Jangan gunakan template keuangan, ember bocor, parenting, dokter, produk, atau cerita keluarga. Jangan mengarang pertandingan, statistik, kutipan, atau nama baru yang tidak ada di input."
+                : "Jaga suara penulis tetap terasa. Untuk mode Forum Quora ini, WAJIB mengikuti semua aturan dalam prompt: pembuka panjang emosional tanpa koma benar, dialog langsung dengan nama orang, narator kacau (gue/aku/nama sendiri tidak konsisten), typo organik 2-3 kali, struktur paragraf ekstrem (panjang vs satu kata), dan penutup dengan kutipan orang lain atau pengakuan sederhana. Jangan membuat daftar bernomor atau bullet points. Jangan membuat kesimpulan rapi. Tulis seperti manusia yang sedang curhat di Quora.",
       postProcessTone: "indonesian-general",
     };
   }
@@ -901,7 +914,7 @@ function reduceSchoolGeneralAiPatterns(text: string) {
     [/\bDari sudut pandang evolusi, ini masuk akal: seks bikin manusia tetap bertahan\b/gi, "Kalau dilihat sederhana, wajar saja dorongan itu kuat karena manusia memang punya naluri untuk bertahan dan punya keturunan"],
     [/\bJadi otak ngasih reward kuat biar kita terus melakukannya\b/gi, "Tubuh seperti memberi sinyal bahwa itu sesuatu yang penting"],
     [/\bTapi jangan lupa, budaya dan media juga ikut memperkuat persepsi itu\b/gi, "Masalahnya, obrolan sehari-hari sering membuat seks terlihat seperti ukuran paling besar dari kebahagiaan laki-laki"],
-    [/\bFilm, iklan, bahkan obrolan di warung kopi sering kali bikin seks terlihat seperti “kunci utama kebahagiaan”\b/gi, "Di film, iklan, sampai obrolan tongkrongan, hal itu sering dibesar-besarkan"],
+    [/\bFilm, iklan, bahkan obrolan di warung kopi sering kali bikin seks terlihat seperti Ã¢â‚¬Å“kunci utama kebahagiaanÃ¢â‚¬Â\b/gi, "Di film, iklan, sampai obrolan tongkrongan, hal itu sering dibesar-besarkan"],
     [/\bPadahal, bagi banyak banget pria, yang bikin hidup terasa bermakna justru hal-hal lain\b/gi, "Padahal banyak laki-laki juga mengejar hal lain yang tidak kalah penting"],
     [/\bBelum lagi, karier yang terus berkembang\. Hubungan dengan pasangan yang saling mengerti\b/gi, "Misalnya pekerjaan yang pelan-pelan membaik, atau pasangan yang bisa diajak saling mengerti"],
     [/\bPersahabatan yang nggak perlu dijaga terus\. Keluarga yang damai\b/gi, "Teman yang tidak banyak drama. Keluarga yang rumahnya terasa tenang"],
@@ -1703,14 +1716,14 @@ function reduceMarketingAndTravelCliches(text: string) {
     [/\bmempercepat popularitas Indonesia sebagai tujuan wisata\b/gi, "membuat Indonesia makin dikenal sebagai tujuan wisata"],
     [/\bpenyebaran informasi melalui media sosial tentang\b/gi, "promosi di media sosial tentang"],
     [/\bmenawarkan pengalaman\b/gi, "memberi pengalaman"],
-    [/\byang unik—mulai dari\b/gi, "yang beragam, mulai dari"],
+    [/\byang unikÃ¢â‚¬â€mulai dari\b/gi, "yang beragam, mulai dari"],
   ];
 
   replacements.forEach(([pattern, replacement]) => {
     result = result.replace(pattern, replacement);
   });
 
-  return result.replace(/—/g, ", ");
+  return result.replace(/Ã¢â‚¬â€/g, ", ");
 }
 
 function reduceEducationAndPolicyCliches(text: string) {
@@ -1768,7 +1781,7 @@ function reduceBladerAiPatterns(text: string) {
     result = result.replace(pattern, replacement);
   });
 
-  return result.replace(/\s+—\s+/g, ", ");
+  return result.replace(/\s+Ã¢â‚¬â€\s+/g, ", ");
 }
 
 function normalizeAiLikeConnectors(text: string) {
@@ -2015,7 +2028,7 @@ function removeForcedGeneralArtifacts(text: string) {
     .replace(/\b(yaudah gitu deh|wkwk, gitu aja|ya udah|intinya gitu)\.?/gi, "")
     .replace(/\n\s*(menurut kalian gimana\?|kalian pernah ngalamin hal kayak gini ga\?|apa cuma gue yang mikir gini\?)\s*$/gi, "")
     .replace(/(^|\n)\s*(Gini|Jadi gini|Abis itu),\s*/gi, "$1")
-    .replace(/(^|\n)\s*Nah,\s*(?=[A-ZÀ-ÖØ-Ý])/g, "$1")
+    .replace(/(^|\n)\s*Nah,\s*(?=\p{Lu})/gu, "$1")
     .replace(/\s+([,.;:!?])/g, "$1")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
@@ -2528,6 +2541,7 @@ function breakSentenceStartUniformity(text: string): string {
 // ============================================================
 
 function addIndonesianSignatureStamp(text: string): string {
+  if (isWorkGraduateTopic(text)) return text;
   if (/[A-Z][a-z]+,\s*\d+\s+\w+\s+\d{4}/i.test(text)) return text;
   if (/saya\s+(sedang|mengetik|menulis|melihat)\b/i.test(text)) return text;
   
@@ -2562,6 +2576,10 @@ function addIndonesianSignatureStamp(text: string): string {
 }
 
 function detectAndReplaceWithSpecificAnecdote(text: string): string {
+  if (isWorkGraduateTopic(text)) {
+    return addWorkGraduateGroundingLine(text);
+  }
+
   if (/(pakdhe|paman|om\b|kakek|dulu\b)[\s\S]{0,100}(lulusan|angkatan|tahun)/i.test(text)) {
     return text;
   }
@@ -2974,12 +2992,12 @@ function addSelfContradictionMarkers(text: string): string {
   if (/\b(penelitian|studi|metode|skripsi)\b/i.test(text)) return text;
   
   const markers = [
-    ' Tapi kan— yaudahlah.',
+    ' Tapi kanÃ¢â‚¬â€ yaudahlah.',
     ' Atau mungkin tidak juga.',
     ' Atau bisa juga nggak gitu.',
-    ' Eh, tapi kalau dipikir ulang—',
+    ' Eh, tapi kalau dipikir ulangÃ¢â‚¬â€',
     ' Atau ya, mungkin saya salah.',
-    ' Tapi kalau dipikir lagi—',
+    ' Tapi kalau dipikir lagiÃ¢â‚¬â€',
     ' Tapi ya gitu deh.',
     ' Atau mungkin saya yang lebay.',
   ];
@@ -3003,7 +3021,7 @@ function addTopicDrift(text: string): string {
   
   const driftMarkers = [
     ' Ngomong-ngomong, ',
-    ' Eh, tapi tadi mau ngomong apa ya— ',
+    ' Eh, tapi tadi mau ngomong apa yaÃ¢â‚¬â€ ',
     ' Yaudahlah, intinya ',
     ' Ya sudahlah, ',
     ' Anyway, ',
@@ -3234,7 +3252,7 @@ function shouldKeepNumericLiteral(rawNumber: string, value: number, before: stri
   if (absValue >= 1900 && absValue <= 2100) return true;
   if (/[#@]\s*$/.test(before)) return true;
   if (/\b(pasal|ayat|bab|halaman|hlm|nomor|no\.?|kode|id|pin|otp)\s*$/i.test(before)) return true;
-  if (/^\s*(%|persen|derajat|°|cm|mm|kg|gr|g\b|km|m\b|rp|idr|usd|\$)/i.test(after)) return true;
+  if (/^\s*(%|persen|derajat|Ã‚Â°|cm|mm|kg|gr|g\b|km|m\b|rp|idr|usd|\$)/i.test(after)) return true;
   if (/^-?\d+$/.test(rawNumber) && rawNumber.length > 12) return true;
   return false;
 }
@@ -3351,15 +3369,15 @@ function addAbandonedThoughts(text: string): string {
       const sentences = splitSentences(para);
       if (sentences.length > 1) {
         const abandoners = [
-          ' — tapi sudahlah.',
-          ' — ya sudah.',
-          ' — tapi mau bagaimana.',
-          ' — yaudah.',
-          ' — tapi gitu deh.',
-          ' — tapi namanya juga hidup.',
+          ' Ã¢â‚¬â€ tapi sudahlah.',
+          ' Ã¢â‚¬â€ ya sudah.',
+          ' Ã¢â‚¬â€ tapi mau bagaimana.',
+          ' Ã¢â‚¬â€ yaudah.',
+          ' Ã¢â‚¬â€ tapi gitu deh.',
+          ' Ã¢â‚¬â€ tapi namanya juga hidup.',
         ];
         const last = sentences[sentences.length - 1];
-        if (!/[...—]\s*$/.test(last)) {
+        if (!/[...Ã¢â‚¬â€]\s*$/.test(last)) {
           sentences[sentences.length - 1] = last.replace(/[.!?]$/, '') + 
             abandoners[stableIndex(seed, i * 6666, abandoners.length)];
           return sentences.join(' ');
@@ -3369,9 +3387,9 @@ function addAbandonedThoughts(text: string): string {
     
     if (stableUnit(seed, i * 7777) > 0.88 && para.length > 120) {
       const asides = [
-        ' Eh, tapi ngomong-ngomong — ',
-        ' Yaudah intinya — ',
-        ' Pokoknya — ',
+        ' Eh, tapi ngomong-ngomong Ã¢â‚¬â€ ',
+        ' Yaudah intinya Ã¢â‚¬â€ ',
+        ' Pokoknya Ã¢â‚¬â€ ',
         ' Jadi gitu deh, ',
       ];
       const sentences = splitSentences(para);
@@ -3664,7 +3682,7 @@ function addProfoundTopicDrift(text: string): string {
     },
     {
       trigger: /.*/,
-      drift: "Eh tapi ngomong-ngomong — jadi ingat waktu itu. Lupa mau ngomong apa tadi."
+      drift: "Eh tapi ngomong-ngomong Ã¢â‚¬â€ jadi ingat waktu itu. Lupa mau ngomong apa tadi."
     }
   ];
 
@@ -3732,16 +3750,16 @@ function addStreamOfConsciousness(text: string): string {
   const paragraphs = splitParagraphs(text);
   
   const thoughtBreaks = [
-    " — tapi ya sudahlah.",
-    " — mau bagaimana.",
-    " — tapi gitu deh.",
-    " Eh, tapi — lupakan.",
+    " Ã¢â‚¬â€ tapi ya sudahlah.",
+    " Ã¢â‚¬â€ mau bagaimana.",
+    " Ã¢â‚¬â€ tapi gitu deh.",
+    " Eh, tapi Ã¢â‚¬â€ lupakan.",
     " Atau mungkin tidak juga.",
-    " Eh, ngomong-ngomong — ",
-    " Wait, jadi — ",
-    " Yaudahlah pokoknya — ",
-    " Intinya sih — ",
-    " Jadi gitu deh — ",
+    " Eh, ngomong-ngomong Ã¢â‚¬â€ ",
+    " Wait, jadi Ã¢â‚¬â€ ",
+    " Yaudahlah pokoknya Ã¢â‚¬â€ ",
+    " Intinya sih Ã¢â‚¬â€ ",
+    " Jadi gitu deh Ã¢â‚¬â€ ",
   ];
 
   const selfTalk = [
@@ -4152,7 +4170,7 @@ function addConversationRepairs(text: string): string {
 
       const sentenceIndex = stableIndex(seed, index * 666, sentences.length - 1);
       if (!sentences[sentenceIndex] || sentences[sentenceIndex].length < 35) return paragraph;
-      sentences[sentenceIndex] = sentences[sentenceIndex].replace(/[.!?]$/, "") + " — atau lebih tepatnya, " + lowercaseFirst(sentences[sentenceIndex + 1] ?? "");
+      sentences[sentenceIndex] = sentences[sentenceIndex].replace(/[.!?]$/, "") + " Ã¢â‚¬â€ atau lebih tepatnya, " + lowercaseFirst(sentences[sentenceIndex + 1] ?? "");
       if (sentences[sentenceIndex + 1]) sentences.splice(sentenceIndex + 1, 1);
       return sentences.join(" ");
     })
@@ -4177,7 +4195,7 @@ function addRhetoricalPauses(text: string): string {
 
   const paragraphs = splitParagraphs(text);
   if (paragraphs.length < 2) return text;
-  const pauses = [" — tunggu", " — maksudnya", " — ya,", " — kalau dipikir lagi"];
+  const pauses = [" Ã¢â‚¬â€ tunggu", " Ã¢â‚¬â€ maksudnya", " Ã¢â‚¬â€ ya,", " Ã¢â‚¬â€ kalau dipikir lagi"];
   const questionPauses = [" kan?", " ya?", " atau gimana?"];
 
   return paragraphs
@@ -4188,7 +4206,7 @@ function addRhetoricalPauses(text: string): string {
 
       const sentenceIndex = stableIndex(seed, index * 333, sentences.length - 1);
       const sentence = sentences[sentenceIndex];
-      if (!sentence || sentence.length < 30 || sentence.includes("—")) return paragraph;
+      if (!sentence || sentence.length < 30 || sentence.includes("Ã¢â‚¬â€")) return paragraph;
 
       const isQuestionLike = /\b(bukan|apakah|apa|kok|tapi kan)\b/i.test(sentence);
       const pause = isQuestionLike
@@ -4258,6 +4276,140 @@ function cleanupForcedTypoArtifacts(text: string): string {
   ];
 
   return replacements.reduce((result, [pattern, replacement]) => result.replace(pattern, replacement), text);
+}
+function cleanupUnnaturalEnglishConnectors(text: string): string {
+  const replacements: Array<[RegExp, string]> = [
+    [/\bAnd that's the thing\b\.?/gi, ""],
+    [/\bSo yeah\b\.?/gi, ""],
+    [/\bThat's it\b\.?/gi, ""],
+    [/\bHope this helps\b\.?/gi, ""],
+    [/\bCheers\b\.?/gi, ""],
+    [/\bHonestly,?\s+it\s+matters\.?/gi, "Jujur, ini penting."],
+    [/\bHonestly\b,?/gi, "Jujur"],
+    [/\bReal talk\b,?/gi, "Jujur saja"],
+    [/\bBasically\b,?/gi, "Pada dasarnya"],
+    [/\bActually\b,?/gi, "Sebenarnya"],
+    [/\bMaybe\b,?/gi, "Mungkin"],
+    [/\bAnyway\b,?/gi, "Ngomong-ngomong"],
+    [/\bI mean\b,?/gi, "Maksudku"],
+    [/\bBy the way\b,?/gi, "Ngomong-ngomong"],
+    [/\bFor real\b,?/gi, "Serius"],
+    [/\bAt the end of the day\b,?/gi, "Pada akhirnya"],
+    [/\bHowever\b,?/gi, "Namun"],
+    [/\bTherefore\b,?/gi, "Karena itu"],
+    [/\bBecause\b,?/gi, "Karena"],
+    [/\bSo\b,?/gi, "Jadi"],
+    [/\bBut\s+padahal\b/gi, "Padahal"],
+    [/\bBut\s+terakhir\b/gi, "Terakhir"],
+    [/\bBut\s+jadi\s+ya\b/gi, "Jadi ya"],
+    [/\bBut\s+masing-masing\b/gi, "Tapi masing-masing"],
+    [/\bBut\b,?/gi, "Tapi"],
+    [/\bAnd\s+akibatnya\b/gi, "Akibatnya"],
+    [/\bAnd\s+belum lagi\b/gi, "Belum lagi"],
+    [/\bAnd\s+dan\b/gi, "Dan"],
+    [/\bAnd\s+di\s+banyak\b/gi, "Di banyak"],
+    [/\bAnd\s+di\b/gi, "Di"],
+    [/\bAnd\b,?/gi, "Dan"],
+  ];
+
+  let result = replacements.reduce((current, [pattern, replacement]) => current.replace(pattern, replacement), text);
+  result = result
+    .replace(/\bTapi\s+padahal\b/gi, "Padahal")
+    .replace(/\bTapi\s+namun\b/gi, "Namun")
+    .replace(/\bTapi\s+terakhir\b/gi, "Terakhir")
+    .replace(/\bTapi\s+masing-masing\b/gi, "Tapi masing-masing")
+    .replace(/\bDan\s+akibatnya\b/gi, "Akibatnya")
+    .replace(/\bDan\s+belum lagi\b/gi, "Belum lagi")
+    .replace(/\bDan\s+di\s+banyak\b/gi, "Di banyak")
+    .replace(/\bDan\s+di\b/gi, "Di")
+    .replace(/\bJujur,\s+ini penting\.\s*\./gi, "Jujur, ini penting.")
+    .replace(/[ \t]{2,}/g, " ");
+
+  return result.trim();
+}
+function removeEnglishPhrases(text: string): string {
+  const removals: RegExp[] = [
+    /\bAnd that's the thing\b\.?/gi,
+    /\bSo yeah\b\.?/gi,
+    /\bThat's it\b\.?/gi,
+    /\bHope this helps\b\.?/gi,
+    /\bCheers\b\.?/gi,
+  ];
+
+  let result = removals.reduce((current, pattern) => current.replace(pattern, ""), text);
+  const connectorSwaps: Array<[RegExp, string]> = [
+    [/^\s*Well,\s*/gim, ""],
+    [/^\s*But\s+padahal\b/gim, "Padahal"],
+    [/^\s*But\s+di\s+balik\s+itu\b/gim, "Di balik itu"],
+    [/^\s*But\s+keempat\b/gim, "Keempat"],
+    [/^\s*But\s+terakhir\b/gim, "Terakhir"],
+    [/^\s*But\b,?\s*/gim, "Tapi "],
+    [/^\s*And\s+that's\s+the\s+thing\.?\s*/gim, ""],
+    [/^\s*And\s+jadi,?\s*/gim, "Jadi, "],
+    [/^\s*And\s+ya,?\s*/gim, "Ya, "],
+    [/^\s*And\s+dengan\s+cepat\b/gim, "Dengan cepat"],
+    [/^\s*And\s+ketiga\b/gim, "Ketiga"],
+    [/^\s*And\b,?\s*/gim, "Dan "],
+  ];
+
+  result = connectorSwaps.reduce((current, [pattern, replacement]) => current.replace(pattern, replacement), result);
+  return result
+    .replace(/\s+([,.;:!?])/g, "$1")
+    .replace(/[ \t]{2,}/g, " ")
+    .replace(/\n[ \t]+/g, "\n")
+    .trim();
+}
+
+function destroyConclusionFormality(text: string): string {
+  const paragraphs = splitParagraphs(text);
+  if (paragraphs.length === 0) return text;
+
+  const lastIndex = paragraphs.length - 1;
+  let lastPara = removeEnglishPhrases(paragraphs[lastIndex]);
+
+  const openerSwaps: Array<[RegExp, string]> = [
+    [/^\s*Kesimpulannya,?\s*/i, "Jadi intinya sih, "],
+    [/^\s*Jadi,?\s*/i, "Jadi gini deh, "],
+    [/^\s*Dengan demikian,?\s*/i, "Makanya, "],
+    [/^\s*Kepuasan\s+tergantung\s+pada\s+bagaimana\b/i, "Kepuasan tuh tergantung gimana"],
+    [/^\s*Kepuasan\s+finansial\s+tergantung\s+pada\s+bagaimana\b/i, "Kepuasan finansial tuh tergantung gimana"],
+    [/^\s*Pada akhirnya,?\s*/i, "Ujung-ujungnya, "],
+    [/^\s*Singkatnya,?\s*/i, "Pokoknya, "],
+  ];
+
+  const wordSwaps: Array<[RegExp, string]> = [
+    [/\bbagaimana\s+kita\b/gi, "gimana kita"],
+    [/\bmengelolanya\b/gi, "ngelolanya"],
+    [/\bmemaknai\b/gi, "ngertiin"],
+    [/\bterasa\s+kurang\b/gi, "masih kurang aja"],
+    [/\bmasih\s+kurang\b/gi, "masih kurang aja"],
+    [/\bseberapa\s+besar\s+gaji\b/gi, "seberapa besar nominal gaji"],
+    [/\bgaji\s+yang\s+kita\s+dapat\b/gi, "nominal gaji yang kita dapetin"],
+    [/\bgaji\s+yang\s+kita\s+dapatkan\b/gi, "nominal gaji yang kita dapetin"],
+    [/\bapa\s+yang\s+udah\s+kita\s+punya\b/gi, "apa yang udah ada"],
+    [/\bseberapa\s+nyaman\s+kita\s+dengan\s+apa\s+yang\s+udah\s+ada\b/gi, "seberapa syukurnya kita sama apa yang udah ada"],
+    [/\bsecara\s+psikologis\b/gi, "secara psikologis"],
+  ];
+
+  lastPara = openerSwaps.reduce((current, [pattern, replacement]) => current.replace(pattern, replacement), lastPara);
+  lastPara = wordSwaps.reduce((current, [pattern, replacement]) => current.replace(pattern, replacement), lastPara);
+  lastPara = lastPara
+    .replace(/\bBagi\s+sebagian\s+orang\b/gi, "Buat sebagian orang")
+    .replace(/\bTapi\s+bagi\s+yang\s+lain\b/gi, "Tapi buat yang lain")
+    .replace(/\bkarena\s+ekspektasi\b/gi, "soalnya ekspektasi")
+    .replace(/\bitu\s+sendiri\b/gi, "itu")
+    .replace(/\bJadi gini deh,\s+mungkin\b/gi, "Jadi mungkin")
+    .replace(/\bJadi,\s+mungkin\b/gi, "Jadi mungkin")
+    .replace(/\s+([,.;:!?])/g, "$1")
+    .replace(/[ \t]{2,}/g, " ")
+    .trim();
+
+  if (!/\b(sih|deh|aja|kok|tuh)\b/i.test(lastPara)) {
+    lastPara = lastPara.replace(/[.!?]?$/, " sih.");
+  }
+
+  paragraphs[lastIndex] = lastPara;
+  return paragraphs.join("\n\n");
 }
 
 // 14e. Mixed register, spontaneous rhythm, and unfinished thoughts.
@@ -5239,12 +5391,12 @@ function injectCulturalReferences(text: string): string {
     // Weather references
     {
       trigger: /\b(sulit|susah|panas|dingin)/i,
-      content: " Kayak mendung di bulan Juni — keliatan tapi nggak mau turun."
+      content: " Kayak mendung di bulan Juni Ã¢â‚¬â€ keliatan tapi nggak mau turun."
     },
     // Time references
     {
       trigger: /\b(lama|singkat|cepat|pelan)/i,
-      content: " Kayak waktu TL — terasa lama tapi kalau ingat, quick moment."
+      content: " Kayak waktu TL Ã¢â‚¬â€ terasa lama tapi kalau ingat, quick moment."
     },
     // Family references
     {
@@ -5254,17 +5406,17 @@ function injectCulturalReferences(text: string): string {
     // Work references
     {
       trigger: /\b(kerja|bekerja|kantor|meeting|rapat)/i,
-      content: " Kayak kontrak — tertulis 8 jam, tapi realitanya ya lebih."
+      content: " Kayak kontrak Ã¢â‚¬â€ tertulis 8 jam, tapi realitanya ya lebih."
     },
     // School references
     {
       trigger: /\b(sekolah|kampus|guru|dosen|ujian|PR)/i,
-      content: " Kayak waktu SD — sekarang kangen tapi dulu juga males."
+      content: " Kayak waktu SD Ã¢â‚¬â€ sekarang kangen tapi dulu juga males."
     },
     // Default (matches anything)
     {
       trigger: /.*/,
-      content: " Kayak kata orang — ngapa ya, kadang emang gitu aja."
+      content: " Kayak kata orang Ã¢â‚¬â€ ngapa ya, kadang emang gitu aja."
     }
   ];
 
@@ -5353,7 +5505,7 @@ function capitalizeFirst(text: string) {
 }
 
 // ============================================================
-// CRITICAL HUMAN SIGNATURES — Wajib Ditambahkan (Dari Dosen)
+// CRITICAL HUMAN SIGNATURES Ã¢â‚¬â€ Wajib Ditambahkan (Dari Dosen)
 // ============================================================
 
 /**
@@ -5364,12 +5516,12 @@ function capitalizeFirst(text: string) {
 function forceOneSentenceParagraphs(text: string): string {
   const seed = stableHash(text);
   
-  // Academic tidak boleh dipecah — skripsi punya konvensi berbeda
+  // Academic tidak boleh dipecah Ã¢â‚¬â€ skripsi punya konvensi berbeda
   if (/\b(penelitian|studi|metode|skripsi|tesis)\b/i.test(text)) {
     return text;
   }
   
-  // Kalau teks pendek, jangan pecah — malah jadi tidak natural
+  // Kalau teks pendek, jangan pecah Ã¢â‚¬â€ malah jadi tidak natural
   if (text.length < 400) return text;
   
   const paragraphs = splitParagraphs(text);
@@ -5413,7 +5565,7 @@ function forceOneSentenceParagraphs(text: string): string {
 }
 
 /**
- * #2: Kalimat pembuka ekstrem — buka dengan 1-2 kata.
+ * #2: Kalimat pembuka ekstrem Ã¢â‚¬â€ buka dengan 1-2 kata.
  * "Tidak bisa." adalah senjata pamungkas.
  * Ini menurunkan generated_prob dari 0.8 ke 0.00001.
  */
@@ -5460,7 +5612,7 @@ function addExtremeOpening(text: string): string {
 
 /**
  * #3: Titik menggantung di akhir teks.
- * spesimen A diakhiri "\n." — ini sangat manusiawi.
+ * spesimen A diakhiri "\n." Ã¢â‚¬â€ ini sangat manusiawi.
  */
 function addTrailingDot(text: string): string {
   const seed = stableHash(text);
@@ -5490,7 +5642,7 @@ function addTrailingDot(text: string): string {
 
 /**
  * #4: Typo spesifik yang manusiawi.
- * "Christoper Nolan" — typo pada nama yang DIKETAHUI.
+ * "Christoper Nolan" Ã¢â‚¬â€ typo pada nama yang DIKETAHUI.
  * AI tidak pernah salah ketik nama terkenal.
  */
 function addSpecificTypo(text: string): string {
@@ -5531,7 +5683,7 @@ function addSpecificTypo(text: string): string {
 }
 
 /**
- * #5: Meta-revisi — manusia mengoreksi diri sendiri saat menulis.
+ * #5: Meta-revisi Ã¢â‚¬â€ manusia mengoreksi diri sendiri saat menulis.
  * "Tapi kemudian... saya jadi merevisi pemikiran saya di atas."
  * AI hampir tidak pernah melakukan ini secara natural.
  */
@@ -5555,7 +5707,7 @@ function addSelfRevisionMarker(text: string): string {
   const revisions = [
     "Tapi kemudian, melihat hal ini lebih dalam, saya jadi merevisi pemikiran saya di atas.",
     "Tapi setelah dipikir lagi, yang tadi saya bilang itu kurang tepat.",
-    "Eh, tapi tunggu — mungkin yang saya bilang tadi belum sepenuhnya benar.",
+    "Eh, tapi tunggu Ã¢â‚¬â€ mungkin yang saya bilang tadi belum sepenuhnya benar.",
     "Tapi kemudian saya realize, ada angle yang saya lewatkan.",
     "Tapi setelah baca ulang, saya jadi ubah cara pandang soal ini.",
   ];
@@ -5572,7 +5724,7 @@ function addSelfRevisionMarker(text: string): string {
  * "Tarantino yang punya obsesi aneh dengan kaki manusia"
  * AI tidak pernah menghasilkan contoh seperti ini secara spontan.
  * 
- * ⚠️ UPDATED (dari dosen): NONAKTIFKAN untuk topik insecure/rendah diri/teman sukses
+ * Ã¢Å¡Â Ã¯Â¸Â UPDATED (dari dosen): NONAKTIFKAN untuk topik insecure/rendah diri/teman sukses
  * karena template ini terdeteksi sebagai AI (74% score).
  */
 function addAbsurdSpecificDetail(text: string): string {
@@ -5587,7 +5739,7 @@ function addAbsurdSpecificDetail(text: string): string {
   const hasCreativeContext = /\b(sutradara|film|seni|ilustrator|desain|kreatif|profesi)\b/i.test(text);
   if (!hasCreativeContext) return text;
   
-  // ⭐ NEW: Deteksi topik insecure/rendah diri/teman sukses - JANGAN pakai absurd detail
+  // Ã¢Â­Â NEW: Deteksi topik insecure/rendah diri/teman sukses - JANGAN pakai absurd detail
   if (shouldUseLifeStoryMode(text)) {
     return text; // Skip untuk topik Life Story
   }
@@ -5621,9 +5773,9 @@ function addAbsurdSpecificDetail(text: string): string {
 }
 
 /**
- * #7: HINDARI LIST / INSTRUKSI — ini adalah Jebakan Terbesar.
+ * #7: HINDARI LIST / INSTRUKSI Ã¢â‚¬â€ ini adalah Jebakan Terbesar.
  * Bagian "Hilangkan struktur esai. Tambahkan contoh..." di spesimen B
- * punya generated_prob 0.97 — hampir 100% AI.
+ * punya generated_prob 0.97 Ã¢â‚¬â€ hampir 100% AI.
  */
 function removeListInstructions(text: string): string {
   let result = text;
@@ -5638,13 +5790,13 @@ function removeListInstructions(text: string): string {
     return trimmed.length > 0 && trimmed.length < 50 && !trimmed.match(/^[A-Z]/) && !trimmed.match(/^\(/);
   });
   
-  // Jika >50% garis pendek dan berurutan → rusak struktur list
+  // Jika >50% garis pendek dan berurutan Ã¢â€ â€™ rusak struktur list
   if (shortLines.length >= 3) {
     const joined = shortLines.join(" ");
     // Convert list jadi kalimat naratif
     const narrativeVersions = [
       `Yang perlu dilakukan tuhsimulasi: jangan terlalu rapi, mulai dari poin yang random, tambahin contoh spesifik yang tiba-tiba, buat typo natural, dan selingin dengan kontradiksi.`,
-      `Intinya sih sederhana — jangan keliatan seperti template. Mulai dari mana saja, sisipkan detail nyeleneh, dan biar ada yang terasa janggal sedikit.`,
+      `Intinya sih sederhana Ã¢â‚¬â€ jangan keliatan seperti template. Mulai dari mana saja, sisipkan detail nyeleneh, dan biar ada yang terasa janggal sedikit.`,
       `Pokoknya begini: langsung masuk ke inti tanpa basa-basi, kasih contoh yang spesifik, sisipkan typo natural, dan jangan takut ada kontradiksi kecil.`,
     ];
     
@@ -5691,7 +5843,7 @@ function removeListInstructions(text: string): string {
 }
 
 /**
- * #8: Vary paragraph opener patterns — hindari AI-like opener uniformity.
+ * #8: Vary paragraph opener patterns Ã¢â‚¬â€ hindari AI-like opener uniformity.
  * AI selalu mulai paragraf dengan "Selain itu", "Namun", "Dengan demikian"
  * Manusia mulai dengan pola tidak terprediksi.
  */
@@ -5734,7 +5886,7 @@ function varyParagraphOpeners(text: string): string {
 }
 
 /**
- * #9: End with uncertainty — hindari concluding paragraph yang sempurna.
+ * #9: End with uncertainty Ã¢â‚¬â€ hindari concluding paragraph yang sempurna.
  * AI selalu menutup dengan "Dengan demikian", "Jadi intinya"
  * Manusia sering menutup dengan keraguan atau pertanyaan.
  */
@@ -5782,11 +5934,11 @@ function addUncertainEnding(text: string): string {
 }
 
 /**
- * #10: Burstiness tinggi — kalimat sangat pendek diselingi sangat panjang.
+ * #10: Burstiness tinggi Ã¢â‚¬â€ kalimat sangat pendek diselingi sangat panjang.
  * spesimen A punya "taste" lalu langsung "."
  * Kalimat <10 kata harus ada di beberapa tempat.
  * 
- * ⚠️ UPDATED (dari dosen): NONAKTIFKAN untuk topik insecure/rendah diri/teman sukses
+ * Ã¢Å¡Â Ã¯Â¸Â UPDATED (dari dosen): NONAKTIFKAN untuk topik insecure/rendah diri/teman sukses
  * karena fragment pendek seperti "Titik.", "Gitu.", "Parah." terdeteksi sebagai template AI.
  */
 function addHighBurstiness(text: string): string {
@@ -5797,7 +5949,7 @@ function addHighBurstiness(text: string): string {
     return text;
   }
   
-  // ⭐ NEW: Deteksi topik insecure/rendah diri/teman sukses - JANGAN pakai burstiness template
+  // Ã¢Â­Â NEW: Deteksi topik insecure/rendah diri/teman sukses - JANGAN pakai burstiness template
   if (shouldUseLifeStoryMode(text)) {
     return text; // Skip untuk topik Life Story
   }
@@ -5864,8 +6016,8 @@ function hasNaturalParagraphChaos(text: string): boolean {
 }
 
 /**
- * destroyNumberedLists — Hancurkan Semua Pola Penomoran
- * Ini wajib. Apapun yang terdeteksi sebagai 1., 2., 3., a), -, •, harus dihancurkan
+ * destroyNumberedLists Ã¢â‚¬â€ Hancurkan Semua Pola Penomoran
+ * Ini wajib. Apapun yang terdeteksi sebagai 1., 2., 3., a), -, Ã¢â‚¬Â¢, harus dihancurkan
  * dan diubah menjadi narasi yang tidak rapi.
  */
 function destroyNumberedLists(text: string): string {
@@ -5883,7 +6035,7 @@ function destroyNumberedLists(text: string): string {
     
     listItems.forEach((item, i) => {
       const conn = connectors[stableIndex(seed, i, connectors.length)];
-      const cleaned = item.replace(/^(\d+[\.\)]\s|[-•]\s|[a-zA-Z][\.\)]\s)/, '').trim();
+      const cleaned = item.replace(/^(\d+[\.\)]\s|[-Ã¢â‚¬Â¢]\s|[a-zA-Z][\.\)]\s)/, '').trim();
       if (i === 0) {
         narrative += conn + ', ' + cleaned.toLowerCase() + '.';
       } else {
@@ -5898,7 +6050,7 @@ function destroyNumberedLists(text: string): string {
   lines.forEach((line) => {
     const trimmed = line.trim();
     // Deteksi penomoran atau bullet
-    if (/^(\d+[\.\)]\s|[-•]\s|[a-zA-Z][\.\)]\s)/.test(trimmed)) {
+    if (/^(\d+[\.\)]\s|[-Ã¢â‚¬Â¢]\s|[a-zA-Z][\.\)]\s)/.test(trimmed)) {
       inList = true;
       listItems.push(trimmed);
     } else {
@@ -5921,7 +6073,7 @@ function destroyNumberedLists(text: string): string {
 }
 
 /**
- * removeExactDuplicates — Hapus Kalimat Kembar
+ * removeExactDuplicates Ã¢â‚¬â€ Hapus Kalimat Kembar
  * Kalimat yang muncul >1 kali harus dihapus salah satunya.
  * Ini mencegah template repetition yang dideteksi GPTZero.
  */
@@ -5942,7 +6094,7 @@ function removeExactDuplicates(text: string): string {
 }
 
 /**
- * suppressRandomTopicInjection — Kurangi Drift Tidak Relevan
+ * suppressRandomTopicInjection Ã¢â‚¬â€ Kurangi Drift Tidak Relevan
  * Pastikan topic drift tetap agak nyambung, tidak terlalu kontras.
  * Untuk sementara, nonaktifkan addAbsurdSpecificDetail jika topiknya bukan tentang kreativitas/seni.
  */
@@ -5953,6 +6105,9 @@ function shouldSuppressAbsurdDetail(text: string): boolean {
     /\b(harga|rumah|properti|uang|finansial|ekonomi|biaya)\b/i,
     /\b(sekolah|tugas|ujian|pelajaran|akademik)\b/i,
     /\b(kesehatan|medis|obat|dokter|penyakit)\b/i,
+    /\b(mbappe|mbapp[eÃƒÂ©]|sepak bola|sepakbola|ronaldo|messi|liga champions|pemain bola|psg|real madrid|barcelona|olahraga|atlet|pertandingan|gol)\b/i,
+    /\b(skripsi|tesis|sidang skripsi|sidang akhir|yudisium|revisi|dosen pembimbing|dosen penguji|sempro|semhas|turnitin|lembar pengesahan|wisuda)\b/i,
+    /\b(kuliah luar negeri|luar negri|Singapura|Singapore|NUS|NTU|IELTS|TOEFL|visa pelajar|beasiswa|universitas luar negeri)\b/i,
     /\b(hukum|undang-undang|pengadilan|kasus)\b/i,
   ];
   
@@ -5974,7 +6129,7 @@ export function forceLifeStoryStructure(text: string): string {
 }
 
 /**
- * forceOneSentenceParagraphsConditional — Versi conditional
+ * forceOneSentenceParagraphsConditional Ã¢â‚¬â€ Versi conditional
  * Hanya pecah paragraf jika teks belum punya chaos alami.
  */
 function forceOneSentenceParagraphsConditional(text: string): string {
@@ -5988,7 +6143,7 @@ function forceOneSentenceParagraphsConditional(text: string): string {
 }
 
 /**
- * cleanupExcessiveWhitespace — Bersihkan spasi kosong berlebihan
+ * cleanupExcessiveWhitespace Ã¢â‚¬â€ Bersihkan spasi kosong berlebihan
  * Tapi sisakan satu atau dua baris kosong agar tetap terasa tidak rapi.
  */
 function cleanupExcessiveWhitespace(text: string): string {
@@ -5999,7 +6154,7 @@ function cleanupExcessiveWhitespace(text: string): string {
 }
 
 /**
- * addExtremeOpeningConditional — Tambahkan pembuka ekstrem jika belum ada
+ * addExtremeOpeningConditional Ã¢â‚¬â€ Tambahkan pembuka ekstrem jika belum ada
  */
 function addExtremeOpeningConditional(text: string): string {
   // Cek apakah sudah ada opening ekstrem
@@ -6081,7 +6236,7 @@ function addChatStyleTypos(text: string): string {
 }
 
 /**
- * EKSPRESI EMOSI MELEDAK - "thee besst", "badabessstt", emoji ❤😍🥰
+ * EKSPRESI EMOSI MELEDAK - "thee besst", "badabessstt", emoji Ã¢ÂÂ¤Ã°Å¸ËœÂÃ°Å¸Â¥Â°
  * Untuk teks yang butuh ledakan emosi seperti "Tim di fasilitasi orang tua hahah"
  */
 function addExplosiveEmotions(text: string): string {
@@ -6113,7 +6268,7 @@ function addExplosiveEmotions(text: string): string {
     "amazingggg",
   ];
   
-  const emojis = ["❤", "😍", "🥰", "😂", "🤣", "😭", "🙏", "💯", "🔥", "✨"];
+  const emojis = ["Ã¢ÂÂ¤", "Ã°Å¸ËœÂ", "Ã°Å¸Â¥Â°", "Ã°Å¸Ëœâ€š", "Ã°Å¸Â¤Â£", "Ã°Å¸ËœÂ­", "Ã°Å¸â„¢Â", "Ã°Å¸â€™Â¯", "Ã°Å¸â€Â¥", "Ã¢Å“Â¨"];
   
   const paragraphs = splitParagraphs(text);
   if (paragraphs.length < 2) return text;
@@ -6205,7 +6360,7 @@ function addHyperSpecificLocationDetails(text: string): string {
 }
 
 /**
- * PEMBENARAN DIRI - "Aku buktinya😁😁", "Serius deh", dll
+ * PEMBENARAN DIRI - "Aku buktinyaÃ°Å¸ËœÂÃ°Å¸ËœÂ", "Serius deh", dll
  * Manusia sering merasa perlu membuktikan/membela diri saat bercerita.
  */
 function addSelfJustificationMarkers(text: string): string {
@@ -6225,7 +6380,7 @@ function addSelfJustificationMarkers(text: string): string {
   if (stableUnit(seed, 6655) < 0.40) return text;
   
   const justifications = [
-    "Aku buktinya😁😁",
+    "Aku buktinyaÃ°Å¸ËœÂÃ°Å¸ËœÂ",
     "Serius deh, aku nggak ngarang.",
     "Percaya deh, ini pengalaman pribadi.",
     "Nggak bohong, ini beneran kejadian.",
@@ -6366,7 +6521,7 @@ function addShiftingOpinions(text: string): string {
   const shiftPhrases = [
     "Tapi ya... gimana ya, kadang aku mikir, jangan-jangan kita terlalu mengidealkan ini.",
     "Eh tapi tunggu, mungkin juga aku yang kelewat dramatis.",
-    "Tapi kemudian saya realize,原来 ada angle yang saya lewatkan.",
+    "Tapi kemudian saya realize,Ã¥Å½Å¸Ã¦ÂÂ¥ ada angle yang saya lewatkan.",
     "Tapi setelah dipikir lagi, yang tadi saya bilang itu kurang tepat.",
     "Atau mungkin... ah sudahlah, terlalu ribet.",
     "Tapi bedanya di sana, mereka punya support system yang lebih baik.",
@@ -6388,7 +6543,7 @@ function addShiftingOpinions(text: string): string {
  * INJECT INSIDER CONFESSION - Pura-pura Jadi Orang Dalam
  * Selipkan kalimat yang mengaku sebagai "orang dalam" industri tertentu.
  * 
- * ⚠️ UPDATED (dari dosen): NONAKTIFKAN untuk topik insecure/rendah diri/teman sukses
+ * Ã¢Å¡Â Ã¯Â¸Â UPDATED (dari dosen): NONAKTIFKAN untuk topik insecure/rendah diri/teman sukses
  * karena confession template seperti ini terdeteksi sebagai AI.
  */
 function injectInsiderConfession(text: string, topic: string): string {
@@ -6397,7 +6552,7 @@ function injectInsiderConfession(text: string, topic: string): string {
   // Hanya aktif untuk topik selebriti atau umum
   if (topic !== 'selebriti' && topic !== 'umum') return text;
   
-  // ⭐ NEW: Deteksi topik insecure/rendah diri/teman sukses - JANGAN pakai insider confession
+  // Ã¢Â­Â NEW: Deteksi topik insecure/rendah diri/teman sukses - JANGAN pakai insider confession
   if (shouldUseLifeStoryMode(text)) {
     return text; // Skip untuk topik Life Story
   }
@@ -6545,7 +6700,7 @@ function destroyCoherenceTotal(text: string): string {
 function cleanupIndonesianSpacing(text: string, keepNarrativePauses = false) {
   let result = text
     .replace(/\s+([,.;:!?])/g, "$1")
-    .replace(/([.!?])([A-ZÀ-ÖØ-Ý])/g, "$1 $2")
+    .replace(/([.!?])(\p{Lu})/gu, "$1 $2")
     .replace(/\b(Selain itu|Namun|Akan tetapi),\s*(Dengan demikian|Oleh karena itu),\s*/gi, "$2, ")
     .replace(/\bDengan begitu,\s*(Dengan demikian|Oleh karena itu),\s*/gi, "$1, ")
     .replace(/\s*,\s*,\s*/g, ", ")
@@ -7116,6 +7271,1024 @@ function applySafeLecturerStylePass(text: string): string {
   result = repairKnownAwkwardArtifacts(result);
   return result;
 }
+
+function lowercaseFirstLetter(text: string): string {
+  return text.replace(/^[A-Z]/, (char) => char.toLowerCase());
+}
+
+function capitalizeFirstLetter(text: string): string {
+  return text.replace(/^([a-zÃ -Ã¶Ã¸-Ã¿])/, (char) => char.toUpperCase());
+}
+
+function destroySequentialStructure(text: string): string {
+  const seed = stableHash(text);
+  const transitions = [
+    "Yang paling kerasa sih,",
+    "Nah, ada lagi yang sering kelewat:",
+    "Terus, kalau dipikir-pikir,",
+    "Belum lagi soal",
+    "Dan yang nggak kalah penting,",
+    "Di sisi lain,",
+    "Tapi tunggu dulu,",
+    "Eh iya, satu lagi:"
+  ];
+  const ordinals = /^(Pertama|Kedua|Ketiga|Keempat|Kelima|Keenam)\b,?\s*/i;
+
+  let ordinalIndex = 0;
+  const paragraphs = splitParagraphs(text).map((paragraph) => {
+    const sentences = splitSentences(paragraph);
+    if (!sentences.length) return paragraph;
+
+    return sentences.map((sentence) => {
+      if (!ordinals.test(sentence.trim())) return sentence;
+      const transition = transitions[stableIndex(seed, ordinalIndex + 1401, transitions.length)];
+      ordinalIndex += 1;
+      const content = sentence.trim().replace(ordinals, "").trim();
+      if (!content) return transition.replace(/[,:]$/, ".");
+      return `${transition} ${lowercaseFirstLetter(content)}`;
+    }).join(" ");
+  });
+
+  return paragraphs.join("\n\n")
+    .replace(/\bYang paling kerasa sih,\s+yang paling kerasa\b/gi, "Yang paling kerasa sih")
+    .replace(/\bDan yang nggak kalah penting,\s+dan\s+/gi, "Dan yang nggak kalah penting, ")
+    .replace(/[ \t]{2,}/g, " ")
+    .trim();
+}
+
+function splitOneLongSentence(sentence: string): string[] {
+  const trimmed = sentence.trim();
+  const words = trimmed.split(/\s+/).filter(Boolean);
+  if (words.length <= 28) return [trimmed];
+
+  let splitPoint = -1;
+  for (let i = 14; i < Math.min(words.length - 6, 26); i += 1) {
+    if (/[,:;â€”-]$/.test(words[i])) {
+      splitPoint = i + 1;
+      break;
+    }
+  }
+
+  if (splitPoint < 0) {
+    for (let i = 14; i < Math.min(words.length - 6, 26); i += 1) {
+      if (/^(karena|tapi|namun|sementara|meskipun|sehingga|jadi|padahal|apalagi|bahkan)$/i.test(words[i])) {
+        splitPoint = i;
+        break;
+      }
+    }
+  }
+
+  if (splitPoint < 0) splitPoint = Math.min(18, words.length - 6);
+  if (splitPoint <= 5 || splitPoint >= words.length - 4) return [trimmed];
+
+  const first = words.slice(0, splitPoint).join(" ").replace(/[,:;â€”-]+$/, "").trim();
+  const second = capitalizeFirstLetter(words.slice(splitPoint).join(" ").replace(/^[,;:â€”-]+\s*/, "").trim());
+  if (!first || !second) return [trimmed];
+
+  return [`${first}.`, second];
+}
+
+function breakLongSentences(text: string): string {
+  return splitParagraphs(text)
+    .map((paragraph) => splitSentences(paragraph)
+      .flatMap((sentence) => splitOneLongSentence(sentence))
+      .join(" ")
+      .trim())
+    .filter(Boolean)
+    .join("\n\n");
+}
+
+function looksLikeEssayAnswer(text: string): boolean {
+  return text.length > 320 && (
+    /\b(Pertama|Kedua|Ketiga|Keempat|Kelima|Kesimpulannya|Dengan demikian|Oleh karena itu)\b/i.test(text) ||
+    /^(Banyak orang|Banyak guru|Seseorang|Menjadi|Orang yang|Banyak masyarakat|Banyak orang di Indonesia)\b/i.test(text.trim()) ||
+    /\b(faktor|kombinasi|struktur|perspektif|dari sudut pandang|hal ini|akibatnya)\b/i.test(text)
+  );
+}
+
+function injectPersonalHook(text: string): string {
+  const paragraphs = splitParagraphs(text);
+  if (!paragraphs.length) return text;
+  const first = paragraphs[0].trim();
+  if (/^(jujur|gila|sumpah|menurutku|menurut saya|kalau|nah|ini nih|agak|saya lihat|buat saya)\b/i.test(first)) return text;
+  if (!looksLikeEssayAnswer(text)) return text;
+
+  const seed = stableHash(text);
+  const topicHooks: Array<{ pattern: RegExp; hooks: string[] }> = [
+    {
+      pattern: /\b(haji|umrah|baitullah|tanah suci|istitha'?ah|ulama|syariat)\b/i,
+      hooks: [
+        "Jujur aja, urusan haji ini sering kelihatan sederhana dari luar, padahal nggak sesimpel punya uang lalu langsung berangkat.",
+        "Kalau ngomongin haji, saya rasa banyak orang terlalu cepat menyimpulkan: sudah kaya kok belum berangkat? Padahal ceritanya bisa panjang.",
+        "Ini salah satu topik yang gampang banget bikin orang salah paham. Haji itu memang soal mampu, tapi makna 'mampu' sendiri nggak cuma uang."
+      ],
+    },
+    {
+      pattern: /\b(guru|honorer|UMR|ASN|PNS|PPPK|yayasan|dana BOS|mengajar)\b/i,
+      hooks: [
+        "Kalau bahas gaji guru honorer, rasanya agak nyesek ya. Soalnya masalahnya bukan guru kurang kerja, tapi sistemnya yang sering nggak sanggup menopang.",
+        "Jujur, topik gaji guru ini sering dibahas dengan cara terlalu rapi. Padahal di lapangan, ceritanya lebih pahit dari sekadar angka UMR.",
+        "Saya selalu merasa pembahasan soal guru honorer ini nggak bisa cuma dijawab dengan satu kalimat. Terlalu banyak lapisan di belakangnya."
+      ],
+    },
+    {
+      pattern: /\b(kekayaan|net worth|likuid|liquidity|kas|aset|ruko|saham perusahaan|Rp\s?10\s*miliar)\b/i,
+      hooks: [
+        "Ini sering banget bikin orang salah paham: kelihatan kaya bukan berarti rekeningnya penuh uang tunai.",
+        "Kalau ngomongin orang punya aset miliaran, jangan langsung bayangin semuanya bentuk cash. Biasanya justru nggak begitu.",
+        "Menurut saya, bedanya kaya di atas kertas dan punya uang siap pakai itu perlu dipahami dulu. Banyak orang ketukar di bagian ini."
+      ],
+    },
+    {
+      pattern: /\b(luar negeri|jalan-jalan|travel|paspor|visa|tiket pesawat|akomodasi|nilai tukar|liburan)\b/i,
+      hooks: [
+        "Kalau bahas kenapa banyak orang belum jalan ke luar negeri, jawaban paling gampang memang uang. Tapi itu baru pintu depannya doang.",
+        "Saya lihat urusan liburan ke luar negeri ini sering dibikin seolah cuma soal minat. Padahal banyak orang bahkan belum sampai tahap mikirin itinerary.",
+        "Jujur, buat banyak keluarga, luar negeri itu bukan sekadar destinasi. Itu hitungan panjang dari paspor sampai uang makan."
+      ],
+    },
+    {
+      pattern: /\b(Elon Musk|Musk|Tesla|SpaceX|startup|investor|AI|kendaraan listrik|luar angkasa)\b/i,
+      hooks: [
+        "Menurut saya, orang sering terlalu menyederhanakan sosok seperti Elon Musk. Seolah cukup kerja keras, lalu selesai. Padahal nggak begitu.",
+        "Kalau ngomongin kenapa susah jadi orang seperti Elon Musk, jawabannya bukan cuma 'dia pintar'. Banyak orang pintar juga mentok di tempat lain.",
+        "Ini topik yang sering kelihatan motivasional, padahal sebenarnya brutal: ada bakat, timing, modal, jaringan, dan hoki yang numpuk jadi satu."
+      ],
+    },
+  ];
+
+  const matched = topicHooks.find(({ pattern }) => pattern.test(text));
+  const hooks = matched?.hooks ?? [
+    "Jujur aja, topik ini sering kelihatan sederhana kalau dibaca sekilas. Tapi begitu dibongkar, ternyata lapisannya banyak.",
+    "Kalau menurut saya, jawaban untuk hal begini nggak bisa terlalu rapi. Realitanya biasanya lebih berantakan.",
+    "Ini nih yang sering bikin orang cepat menyimpulkan, padahal belum tentu sesimpel itu."
+  ];
+  const hook = hooks[stableIndex(seed, 1501, hooks.length)];
+
+  return `${hook}\n\n${text.trim()}`;
+}
+
+function repairGeneralPipelineArtifacts(text: string): string {
+  return text
+    .replace(/^Memberi harapan palsu\b/gi, "Diberi harapan palsu")
+    .replace(/\bmemberi harapan palsu tuh rasanya\b/gi, "diberi harapan palsu tuh rasanya")
+    .replace(/\bmerencanain\b/gi, "ngerencanain")
+    .replace(/\bkarena justru karena\b/gi, "justru karena")
+    .replace(/\bternyata banget berat\b/gi, "berat banget")
+    .replace(/\bisu social\b/gi, "isu sosial")
+    .replace(/\bJadi,?\s+jadi\b/gi, "Jadi")
+    .replace(/\bBut\s+tapi\b/gi, "Tapi")
+    .replace(/\bAnd\s+dan\b/gi, "Dan")
+    .replace(/\bplus\s+pengin\b/gi, "pengen")
+    .replace(/\bpengin\b/gi, "pengen")
+    .replace(/\bBut\s+jadi\s+ya\b/gi, "Jadi ya")
+    .replace(/\bBut\s+masing-masing\b/gi, "Tapi masing-masing")
+    .replace(/\bAnd\s+di\s+banyak\b/gi, "Di banyak")
+    .replace(/\bAnd\s+dan\b/gi, "Dan")
+    .replace(/\bTapi\s+tapi\b/gi, "Tapi")
+    .replace(/\bDan\s+dan\b/gi, "Dan")
+    .replace(/\bJadi\s+kesimpulannya[:,]?\s*/gi, "Jadi intinya, ")
+    .replace(/\bSyarat keadilan ini\s+berat banget\b/gi, "Syarat adil itu berat banget")
+    .replace(/\bnilai-nilai sosial yang lebih luas\b/gi, "nilai yang orang pegang di rumah dan lingkungan")
+    .replace(/\bnilai-nilai bersama\b/gi, "nilai yang dipegang bareng-bareng")
+    .replace(/[ \t]{2,}/g, " ")
+    .trim();
+}
+
+function isElectricVehicleTopic(text: string): boolean {
+  return /\b(mobil listrik|kendaraan listrik|mobil elektrifikasi|elektrifikasi|EV|BEV|SPKLU|SPBKLU|charging|charge|cas|ngecas|baterai|motor listrik|mobil bensin|BBM|emisi|ganjil genap|regenerative braking)\b/i.test(text);
+}
+
+function fixEnglishConnectorsLeftBehind(text: string): string {
+  let result = text;
+  const swaps: Array<[RegExp, string]> = [
+    [/\bBut\s+tapi\b/gi, "Tapi"],
+    [/\bBut\s+salah\s+satu\b/gi, "Salah satu"],
+    [/\bBut\s+plus\b/gi, "Plus"],
+    [/\bBut\s+masalahnya\b/gi, "Masalahnya"],
+    [/\bBut\s+bayangin\b/gi, "Bayangin"],
+    [/\bBut\s+dalam\b/gi, "Dalam"],
+    [/\bBut\s+banyak\b/gi, "Banyak"],
+    [/\bBut\s+ada\b/gi, "Ada"],
+    [/\bBut\s+kalau\b/gi, "Tapi kalau"],
+    [/\bBut\s+untuk\b/gi, "Tapi untuk"],
+    [/\bBut\s+jadi\b/gi, "Jadi"],
+    [/\bBut\b,?/gi, "Tapi"],
+    [/\bAnd\s+nah\b/gi, "Nah"],
+    [/\bAnd\s+fenomena\b/gi, "Fenomena"],
+    [/\bAnd\s+jaringan\b/gi, "Jaringan"],
+    [/\bAnd\s+belum\b/gi, "Belum"],
+    [/\bAnd\s+ini\b/gi, "Ini"],
+    [/\bAnd\s+kalau\b/gi, "Kalau"],
+    [/\bAnd\b,?/gi, "Dan"],
+    [/\bHonestly,?\s+it\s+matters\.?/gi, "Jujur, ini penting."],
+    [/\bHonestly\b,?/gi, "Jujur"],
+    [/\bBasically\b,?/gi, "Intinya"],
+    [/\bActually\b,?/gi, "Sebenarnya"],
+    [/\bHowever\b,?/gi, "Namun"],
+    [/\bTherefore\b,?/gi, "Karena itu"],
+    [/\bMoreover\b,?/gi, "Selain itu"],
+    [/\bFurthermore\b,?/gi, "Selain itu"],
+    [/\bSo\s+yeah\.?/gi, "Ya, gitu."],
+    [/\bThat's\s+it\.?/gi, "Itu aja."],
+    [/\bAnd\s+that's\s+the\s+thing\b/gi, "Justru itu"],
+  ];
+
+  swaps.forEach(([pattern, replacement]) => {
+    result = result.replace(pattern, replacement);
+  });
+
+  return result
+    .replace(/\bTapi\s+tapi\b/gi, "Tapi")
+    .replace(/\bDan\s+dan\b/gi, "Dan")
+    .replace(/\bTapi\s+namun\b/gi, "Namun")
+    .replace(/\bpunya tempatnya\b/gi, "punya benefit")
+    .replace(/[ \t]{2,}/g, " ")
+    .trim();
+}
+
+function aggressiveGenericOpenerRemoval(text: string, topic = detectTopic(text)): string {
+  if (text.length < 180) return text;
+  const paragraphs = splitParagraphs(text).map((paragraph) => paragraph.trim()).filter(Boolean);
+  if (paragraphs.length === 0) return text;
+
+  const first = paragraphs[0];
+  const genericPattern = /^\s*(Banyak orang(?:\s+sekarang|\s+kini)?|Banyak lulusan|Sebagian besar orang|Secara umum|Pada dasarnya|Fenomena ini)\b[\s,]*/i;
+  if (!genericPattern.test(first)) return text;
+
+  const openerByTopic: Record<string, string[]> = {
+    review_produk: [
+      "Kalau bahas mobil listrik vs bensin, saya rasa jangan dilihat sebagai tren doang. ",
+      "Menurut saya, mobil listrik mulai menarik bukan karena kelihatan futuristik saja. ",
+      "Kalau dipakai harian, perbandingan mobil listrik dan bensin mulai terasa dari hal-hal kecil. ",
+    ],
+    karier: [
+      "Menurut saya, kasus lulusan kampus bagus yang masih nganggur itu perlu dilihat dari pasar kerjanya juga. ",
+      "Kalau ngomongin lulusan universitas top yang belum dapat kerja, jangan langsung dibaca sebagai kurang pintar. ",
+      "Saya lihat masalah lulusan kampus bagus yang masih nganggur ini bukan cuma soal kualitas orangnya. ",
+    ],
+    umum: [
+      "Menurut saya, ",
+      "Kalau dilihat pelan-pelan, ",
+      "Saya lihat begini, ",
+    ],
+  };
+
+  const seed = stableHash(text);
+  const key: keyof typeof openerByTopic = topic === "review_produk" || isElectricVehicleTopic(text) ? "review_produk" : topic === "karier" || isWorkGraduateTopic(text) ? "karier" : "umum";
+  const opener = openerByTopic[key][stableIndex(seed, 3101, openerByTopic[key].length)];
+  paragraphs[0] = first.replace(genericPattern, opener);
+  return paragraphs.join("\n\n");
+}
+
+function detectAndFixRepetitiveTransitions(text: string): string {
+  const transitions: Array<{ pattern: RegExp; alternatives: string[] }> = [
+    { pattern: /\bSelain itu,?\s+/gi, alternatives: ["", "Terus, ", "Bagian lain, ", "Lalu, "] },
+    { pattern: /\bDi sisi lain,?\s+/gi, alternatives: ["Tapi, ", "Kalau dilihat dari sisi lain, ", "Masalahnya, "] },
+    { pattern: /\bLebih lanjut,?\s+/gi, alternatives: ["Lanjutnya, ", "Terus, ", ""] },
+    { pattern: /\bDengan demikian,?\s+/gi, alternatives: ["Jadi, ", "Makanya, ", ""] },
+    { pattern: /\bOleh karena itu,?\s+/gi, alternatives: ["Jadi, ", "Makanya, ", ""] },
+    { pattern: /\bKemudian,?\s+/gi, alternatives: ["Lalu, ", "Terus, ", ""] },
+    { pattern: /\bSelanjutnya,?\s+/gi, alternatives: ["Lanjut, ", "Terus, ", ""] },
+  ];
+
+  let result = text;
+  transitions.forEach(({ pattern, alternatives }) => {
+    const matches = result.match(pattern) || [];
+    if (matches.length <= 2) return;
+
+    const seed = stableHash(text + pattern.source);
+    let count = 0;
+    result = result.replace(pattern, (match) => {
+      count += 1;
+      if (count === 1) return match;
+      return alternatives[stableIndex(seed, count * 41, alternatives.length)];
+    });
+  });
+
+  return result.replace(/[ \t]{2,}/g, " ").trim();
+}
+
+function injectNaturalFillerWords(text: string): string {
+  if (text.length < 420 || /\b(penelitian|metode|skripsi|tesis|jurnal)\b/i.test(text)) return text;
+  const existing = (text.match(/\b(nah|terus|jujur|sih|ya|lho)\b/gi) || []).length;
+  if (existing >= 5) return text;
+
+  const paragraphs = splitParagraphs(text).map((paragraph) => paragraph.trim()).filter(Boolean);
+  if (paragraphs.length < 2) return text;
+  const seed = stableHash(text);
+  const targetIndex = Math.min(Math.max(1, stableIndex(seed, 3201, paragraphs.length)), paragraphs.length - 1);
+  const sentences = splitSentences(paragraphs[targetIndex]);
+  if (sentences.length < 3 || stableUnit(seed, 3202) < 0.45) return text;
+
+  const fillers = ["Nah, ", "Terus, ", "Jujur, "];
+  const insertAt = Math.min(1, sentences.length - 1);
+  if (!/^(Nah|Terus|Jujur|Tapi|Lalu),?\s/i.test(sentences[insertAt])) {
+    sentences[insertAt] = `${fillers[stableIndex(seed, 3203, fillers.length)]}${lowercaseFirst(sentences[insertAt])}`;
+    paragraphs[targetIndex] = sentences.join(" ");
+  }
+
+  return paragraphs.join("\n\n");
+}
+
+function preventOverusedHumanTropes(text: string): string {
+  let result = text;
+  const seed = stableHash(text);
+
+  const tropePatterns: Array<{ pattern: RegExp; keep: number; alternatives: string[] }> = [
+    { pattern: /\b(gitu deh|gitu aja|gitu sih)\b/gi, keep: 1, alternatives: ["gitu", "aja", ""] },
+    { pattern: /\btapi ya\b/gi, keep: 1, alternatives: ["tapi", "ya", "cuma"] },
+    { pattern: /\bjujur\b/gi, keep: 2, alternatives: ["sejujurnya", "kalau saya lihat", ""] },
+  ];
+
+  tropePatterns.forEach(({ pattern, keep, alternatives }) => {
+    let count = 0;
+    result = result.replace(pattern, (match) => {
+      count += 1;
+      if (count <= keep) return match;
+      return alternatives[stableIndex(seed, count * 53, alternatives.length)];
+    });
+  });
+
+  return result
+    .replace(/\b(Semoga\s+)?membantu[.!\s]*$/gi, ".")
+    .replace(/\bparah\.{2,}/gi, "parah.")
+    .replace(/[ \t]{2,}/g, " ")
+    .trim();
+}
+
+function forceVariableSentenceLength(text: string): string {
+  const paragraphs = splitParagraphs(text).map((paragraph) => paragraph.trim()).filter(Boolean);
+  if (paragraphs.length === 0) return text;
+  const seed = stableHash(text);
+
+  return paragraphs.map((paragraph, paragraphIndex) => {
+    const sentences = splitSentences(paragraph);
+    if (sentences.length < 3) return paragraph;
+
+    const lengths = sentences.map((sentence) => sentence.split(/\s+/).length);
+    const avg = lengths.reduce((sum, length) => sum + length, 0) / lengths.length;
+    const variance = lengths.reduce((sum, length) => sum + Math.pow(length - avg, 2), 0) / lengths.length;
+    const stdDev = Math.sqrt(variance);
+    if (avg === 0 || stdDev / avg >= 0.24) return paragraph;
+
+    const result: string[] = [];
+    sentences.forEach((sentence, sentenceIndex) => {
+      if (sentence.split(/\s+/).length > 30 && /,\s+(?:dan|tapi|sementara|karena|sehingga)\s+/i.test(sentence)) {
+        const split = sentence.replace(/,\s+(dan|tapi|sementara|karena|sehingga)\s+/i, ". $1 ");
+        splitSentences(split).forEach((part) => result.push(part));
+        return;
+      }
+
+      result.push(sentence);
+      if (sentence.split(/\s+/).length > avg * 1.25 && stableUnit(seed, paragraphIndex * 100 + sentenceIndex) > 0.68) {
+        const shorts = ["Itu kerasa.", "Lumayan ngaruh.", "Ini sering kelewat.", "Sederhana, tapi penting."];
+        result.push(shorts[stableIndex(seed, paragraphIndex * 211 + sentenceIndex, shorts.length)]);
+      }
+    });
+
+    return result.join(" ");
+  }).join("\n\n");
+}
+
+function replaceOverFormalVocabulary(text: string): string {
+  let result = text;
+  const replacements: Array<[RegExp, string]> = [
+    [/\bMeskipun demikian,?\s*/gi, "Tapi "],
+    [/\bSalah satu alasan utama\b/gi, "Yang sering jadi alasan"],
+    [/\bSalah satu alasan\b/gi, "Salah satu hal"],
+    [/\bAlasan utamanya sih karena\b/gi, "Biasanya karena"],
+    [/\bkombinasi faktor\b/gi, "campuran"],
+    [/\bbergantung pada kebutuhan masing-masing pengguna\b/gi, "balik lagi ke kebutuhan pemakainya"],
+    [/\bbiaya operasional\b/gi, "biaya pakai"],
+    [/\bkomponen bergerak\b/gi, "part yang bergerak"],
+    [/\bmenghasilkan torsi maksimum\b/gi, "torsinya keluar cepat"],
+    [/\bemisi gas buang langsung\b/gi, "asap knalpot langsung"],
+    [/\bdampak lingkungan secara keseluruhan\b/gi, "urusan lingkungan secara total"],
+    [/\binsentif pembelian\b/gi, "bantuan pembelian"],
+    [/\bharga kepemilikan\b/gi, "biaya punya"],
+    [/\bpasar kerja sedang mengalami perubahan yang sangat besar\b/gi, "pasar kerja lagi berubah kencang"],
+    [/\bperubahan kebutuhan industri\b/gi, "kebutuhan industri yang berubah"],
+    [/\bketidaksesuaian antara keterampilan\b/gi, "nggak nyambungnya skill"],
+    [/\bkompetensi yang dicari perusahaan\b/gi, "skill yang dicari kantor"],
+    [/\bkemampuan memecahkan masalah\b/gi, "cara beresin masalah"],
+    [/\bpengalaman kerja\b/gi, "pengalaman nyata"],
+    [/\bportofolio yang kuat\b/gi, "portofolio yang kelihatan isinya"],
+    [/\bsignifikan\b/gi, "besar"],
+    [/\bkrusial\b/gi, "penting"],
+    [/\bberkaitan dengan\b/gi, "soal"],
+    [/\bdalam konteks\b/gi, "soal"],
+    [/\bmempertimbangkan\b/gi, "memikirkan"],
+    [/\bmemanfaatkan\b/gi, "pake"],
+  ];
+
+  replacements.forEach(([pattern, replacement]) => {
+    result = result.replace(pattern, replacement);
+  });
+  return result.replace(/[ \t]{2,}/g, " ").trim();
+}
+
+function cleanupWorkGraduateAiPatterns(text: string): string {
+  return text
+    .replace(/\bBanyak lulusan universitas terbaik di Indonesia yang masih menganggur di 2026 nggak berarti mereka kurang cerdas\.?/gi, "Lulusan kampus bagus yang belum kerja pada 2026 itu bukan otomatis kurang pintar.")
+    .replace(/\bDalam dua tahun terakhir, banyak perusahaan melakukan efisiensi[^.?!]*[.?!]?/gi, "Dua tahun terakhir ini rekrutmen memang terasa seret: ada kantor yang nahan hiring, ada yang PHK, ada yang buka posisi sedikit sekali.")
+    .replace(/\bDi saat yang sama, jumlah lulusan perguruan tinggi terus melonjak\.?/gi, "Sementara itu, lulusan baru tetap keluar tiap tahun.")
+    .replace(/\bMasalahnya juga soal mismatch antara skill lulusan dan kebutuhan industri\.?/gi, "Masalah lain: skill kampus dan kebutuhan kantor sering nggak ketemu.")
+    .replace(/\bTapi sayangnya, tidak semua kurikulum di kampus bisa ngejar perkembangan teknologi secepat itu\.?/gi, "Kurikulum kampus juga nggak selalu bisa ngejar perubahan secepat kantor butuh.")
+    .replace(/\bGelar dari kampus ternama tetap memberi keuntungan[â€”-]nggak bisa dipungkiri\.?/gi, "Nama kampus tetap membantu, iya.")
+    .replace(/\bYang dibutuhkan sekarang adalah pengalaman nyata, keterampilan yang relevan, plus kemampuan buat terus belajar dan beradaptasi\.?/gi, "Yang dicari sekarang lebih kelihatan dari kerja nyata: portofolio, magang, cara ngobrol, dan mau belajar lagi.")
+    .replace(/\bIni lebih karena gabungan dari banyak faktor:\s*/gi, "Ini lebih karena banyak hal numpuk: ")
+    .replace(/[ \t]{2,}/g, " ")
+    .trim();
+}
+
+function softenGenericClosingPunchline(text: string, topic = detectTopic(text)): string {
+  const paragraphs = splitParagraphs(text).map((paragraph) => paragraph.trim()).filter(Boolean);
+  if (paragraphs.length === 0) return text;
+
+  const lastIndex = paragraphs.length - 1;
+  let last = paragraphs[lastIndex]
+    .replace(/^\s*(Kesimpulannya|Dengan demikian|Secara keseluruhan|Pada akhirnya),?\s*/i, "")
+    .replace(/^\s*Jadi kesimpulannya\??\s*/i, "");
+
+  if (topic === "review_produk" || isElectricVehicleTopic(text)) {
+    last = last.replace(/\bkeputusan terbaik tetap bergantung pada\b/gi, "ujungnya tetap balik ke");
+    if (!/\b(balik ke kebutuhan|cocok-cocokan|test drive|pemakaian)\b/i.test(last)) {
+      last = `${last} Jadi bukan bensin jelek lalu listrik pasti sempurna. Ini lebih ke cocok-cocokan pemakaian.`;
+    }
+  } else if (topic === "karier" || isWorkGraduateTopic(text)) {
+    if (!/\b(gelar|portofolio|magang|belajar lagi)\b/i.test(last)) {
+      last = `${last} Gelar masih kepake, tapi bukan tiket otomatis.`;
+    }
+  }
+
+  paragraphs[lastIndex] = last.trim();
+  return paragraphs.join("\n\n");
+}
+
+function isBodyOdorTopic(text: string): boolean {
+  return /\b(bau badan|bau ketiak|ketiak|ketek|bau BB|deodoran|deodorant|antiperspiran|keringat|apokrin|eccrine|bakteri kulit|corynebacterium|staphylococcus|abcc11|parfum|sabun|mandi|baju sintetis|katun|lulur|scrub)\b/i.test(text);
+}
+
+function destroyBulletRemnants(text: string): string {
+  const seed = stableHash(text);
+  const transitionFor = (term: string, index: number) => {
+    const cleanTerm = term.trim().toLowerCase();
+    const transitions = [
+      `Nah, soal ${cleanTerm}, `,
+      `Terus, ${cleanTerm} juga ngaruh. `,
+      `Belum lagi ${cleanTerm}. `,
+      `Kalau ngomongin ${cleanTerm}, `,
+    ];
+    return transitions[stableIndex(seed, index * 71 + cleanTerm.length, transitions.length)];
+  };
+
+  let result = text.replace(/\s*[-â€¢*]\s*\*\*([^*]+?)\*\*\s*[:ï¼š]\s*/g, (_match, term: string, offset: number) => {
+    return `. ${transitionFor(term, offset)}`;
+  });
+
+  const lines = result.split(/\r?\n/);
+  const out: string[] = [];
+  let buffer = "";
+
+  lines.forEach((line, index) => {
+    const trimmed = line.trim();
+    const boldBullet = trimmed.match(/^[-â€¢*]\s*\*\*([^*]+?)\*\*\s*[:ï¼š]?\s*(.*)$/i);
+    if (boldBullet) {
+      if (buffer.trim()) out.push(buffer.trim());
+      const [, term, explanation] = boldBullet;
+      buffer = `${transitionFor(term, index)}${explanation}`.trim();
+      return;
+    }
+
+    if (/^[-â€¢*]\s+/.test(trimmed)) {
+      const item = trimmed.replace(/^[-â€¢*]\s+/, "").trim();
+      buffer = buffer ? `${buffer} ${item}` : item;
+      return;
+    }
+
+    if (buffer.trim()) {
+      out.push(buffer.trim());
+      buffer = "";
+    }
+    if (trimmed) out.push(trimmed);
+  });
+
+  if (buffer.trim()) out.push(buffer.trim());
+  return out.join("\n\n")
+    .replace(/^\.\s+/, "")
+    .replace(/\s+([,.;:!?])/g, "$1")
+    .replace(/\.{2,}/g, ".")
+    .trim();
+}
+
+function convertAdviceToListicleRant(text: string): string {
+  let result = text;
+  const adviceSwaps: Array<[RegExp, string]> = [
+    [/\bUntuk mengurangi bau ketiak,?\s*beberapa langkah praktis bisa dicoba:?/gi, "Kalau mau ngurangin bau ketiak, jangan dibikin ribet. Mulai dari yang paling dasar dulu:"],
+    [/\bCara mengurangi bau ketiak meliputi:?/gi, "Cara nguranginnya sebenarnya mulai dari hal yang simpel:"],
+    [/\bBerikut adalah beberapa cara\b:?/gi, "Ini beberapa cara yang masuk akal:"],
+    [/\bBeberapa langkah .+ antara lain:?/gi, "Beberapa hal yang bisa dicoba:"],
+  ];
+
+  adviceSwaps.forEach(([pattern, replacement]) => {
+    result = result.replace(pattern, replacement);
+  });
+
+  return result;
+}
+
+function addGrossHumanTouch(text: string): string {
+  if (!isBodyOdorTopic(text) || text.length < 360) return text;
+  if (/\b(gosok-gosok|jangan cuma bilas|parfum pun kadang kagak nutup|bau badan campur deodoran)\b/i.test(text)) return text;
+
+  const seed = stableHash(text);
+  const details = [
+    "Gosok ketiaknya beneran, jangan cuma kena busa terus merasa sudah bersih.",
+    "Pake parfum pun kadang kagak nutup kalau sumber baunya masih nempel di kulit atau baju.",
+    "Bau badan campur deodoran yang terlalu wangi malah bisa jadi makin enek.",
+    "Kalau habis keringetan, jangan langsung pakai baju yang sama lagi. Itu biasanya yang bikin baunya makin nempel.",
+  ];
+
+  const paragraphs = splitParagraphs(text).map((paragraph) => paragraph.trim()).filter(Boolean);
+  if (paragraphs.length === 0) return text;
+  const targetIndex = Math.min(Math.max(1, stableIndex(seed, 4101, paragraphs.length)), paragraphs.length - 1);
+  paragraphs.splice(targetIndex, 0, details[stableIndex(seed, 4102, details.length)]);
+  return paragraphs.join("\n\n");
+}
+
+function cleanupBodyOdorArtifacts(text: string): string {
+  return text
+    .replace(/\bBisa sampai nyerempet parfum pun jadi nggak cukup\b/gi, "Pake parfum pun kadang kagak nutup")
+    .replace(/\bkomunitas mikroba\b/gi, "bakteri di kulit")
+    .replace(/\bmakanan idaman buat bakteri\b/gi, "makanan buat bakteri")
+    .replace(/\bpencetus utama bau badan\b/gi, "penyebab utama bau badan")
+    .replace(/\bhampir tak berbau\b/gi, "hampir nggak bau")
+    .replace(/\bAnd\s+atau\b/gi, "Atau")
+    .replace(/\bkalau bau tetap sangat menyengat padahal udah rajin bersih-bersih\b/gi, "kalau baunya tetap nyegrak padahal sudah mandi dan ganti baju")
+    .replace(/[ \t]{2,}/g, " ")
+    .trim();
+}
+
+function cleanupRelationshipFinanceConclusion(text: string): string {
+  return text
+    .replace(/\bYang bikin goyah adalah rasa tidak aman, ketidakpastian masa depan, dan kekhawatiran bahwa hidup bersama nggak akan bisa berjalan dengan baik\.?/gi, "Yang sering bikin hubungan mulai goyah bukan cuma soal uang, tapi rasa nggak nyaman yang muncul terus-menerus ketika masa depan terasa penuh tanda tanya.")
+    .replace(/\bItu yang paling menentukan[â€”-]bukan uang, tapi rasa percaya dan harapan untuk kehidupan yang lebih baik\.?/gi, "Ujungnya, yang paling nentuin bukan besar kecilnya penghasilan, tapi apakah dua orang itu masih punya rasa percaya, keyakinan, dan harapan buat ngebangun hidup bareng.")
+    .replace(/\brasa tidak aman, ketidakpastian masa depan, dan kekhawatiran\b/gi, "rasa nggak aman, masa depan yang terasa nggak pasti, dan kekhawatiran")
+    .replace(/\bnge-build\b/gi, "ngebangun")
+    .replace(/\bga cunman\b/gi, "nggak cuma")
+    .replace(/[ \t]{2,}/g, " ")
+    .trim();
+}
+function isCafeDrinkTopic(text: string): boolean {
+  return /\b(matcha|matcha latte|kopi|coffee|kafe|cafe|coffee shop|latte|espresso|americano|cappuccino|kapucino|kafein|l-theanine|catechin|egcg|barista|boba|cheese foam|oat milk|almond milk)\b/i.test(text);
+}
+
+function destroyLongLists(text: string): string {
+  const seed = stableHash(text);
+  const endings = [
+    "dan masih banyak lagi",
+    "dan lain-lain",
+    "pokoknya banyak banget kalau disebut satu-satu",
+    "dan seterusnya",
+    "dan seabrek bagian lain"
+  ];
+
+  return splitParagraphs(text).map((paragraph, paragraphIndex) => {
+    const sentences = splitSentences(paragraph);
+    if (sentences.length === 0) return paragraph;
+
+    return sentences.map((sentence, sentenceIndex) => {
+      const items = sentence.split(/,\s*(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)/);
+      if (items.length <= 6) return sentence;
+
+      const keepCount = Math.max(3, Math.min(5, Math.floor(items.length * 0.45)));
+      const ending = endings[stableIndex(seed, paragraphIndex * 97 + sentenceIndex, endings.length)];
+      const lastPunct = sentence.match(/[.!?]$/)?.[0] ?? ".";
+      return `${items.slice(0, keepCount).join(", ")}, ${ending}${lastPunct}`;
+    }).join(" ");
+  }).join("\n\n");
+}
+
+function destroyFormalStoryOpeners(text: string): string {
+  const paragraphs = splitParagraphs(text);
+  if (paragraphs.length === 0) return text;
+
+  let firstParagraph = paragraphs[0];
+  const rules: Array<{
+    pattern: RegExp;
+    replacement: (match: string, ...captures: string[]) => string;
+  }> = [
+    {
+      pattern: /^\s*Sebut saja namaku\s+([A-Za-zÀ-ÿ'’-]+),\s*(?:(?:seorang\s+)?[^.?!,]*?\s+)?yang telah berusia\s+(\d+)\s+tahun(?:\s+dan\s+telah\s+bersuami)?\.?\s*/i,
+      replacement: (match, name, age) => `Gue ${name}, ${age} tahun${/\bbersuami\b/i.test(match) ? ", udah nikah" : ""}. `,
+    },
+    {
+      pattern: /^\s*Perkenalkan,\s*nama saya\s+([A-Za-zÀ-ÿ'’-]+),\s*saya seorang\s+([^.!?]+)\.?\s*/i,
+      replacement: (_match, name, job) => `Halo, gue ${name}, ${job.trim()}. `,
+    },
+    {
+      pattern: /^\s*Nama saya\s+([A-Za-zÀ-ÿ'’-]+),\s*saya bekerja sebagai\s+([^.!?]+)\.?\s*/i,
+      replacement: (_match, name, job) => `Gue ${name}, kerja jadi ${job.trim()}. `,
+    },
+    {
+      pattern: /^\s*Menurut banyak teman,\s*saya adalah\s+([^.!?]+)\.?\s*/i,
+      replacement: (_match, description) => `Kata temen-temen sih, gue ${description.trim()}. `,
+    },
+    {
+      pattern: /^\s*Saya adalah seorang\s+([^.!?]+)\.?\s*/i,
+      replacement: (_match, description) => `Gue ${description.trim()}. `,
+    },
+    {
+      pattern: /^\s*Saya seorang\s+([^.!?]+)\.?\s*/i,
+      replacement: (_match, description) => `Gue ${description.trim()}. `,
+    },
+  ];
+
+  for (const rule of rules) {
+    if (!rule.pattern.test(firstParagraph)) continue;
+
+    firstParagraph = firstParagraph.replace(rule.pattern, (...args: unknown[]) => {
+      const match = String(args[0] ?? "");
+      const captures = args.slice(1).map((value) => String(value ?? ""));
+      return rule.replacement(match, ...captures);
+    });
+    paragraphs[0] = firstParagraph.replace(/[ \t]{2,}/g, " ").trim();
+    return paragraphs.join("\n\n");
+  }
+
+  return text;
+}
+
+function breakEssayExplanations(text: string): string {
+  const seed = stableHash(text);
+  const essayOpeners = [
+    "Salah satunya",
+    "Alasan utamanya",
+    "Faktor lain",
+    "Penyebabnya",
+    "Hal ini disebabkan",
+    "Ini terjadi karena",
+    "Salah satu alasan",
+    "Faktor utama",
+    "Pemicunya adalah",
+  ];
+  const spokenOpeners = [
+    "Nah, gini:",
+    "Jadi ceritanya,",
+    "Intinya sih,",
+    "Gue jelasin ya,",
+    "Simpelnya:",
+  ];
+  const connectors = ["Terus,", "Lalu,", "Abis itu,", "Belum lagi,", "Ditambah lagi,"];
+  const stripEnding = (value: string) => value.trim().replace(/[.!?]+$/g, "");
+  const finishSentence = (value: string) => {
+    const trimmed = value.trim();
+    return /[.!?]$/.test(trimmed) ? trimmed : `${trimmed}.`;
+  };
+
+  return splitParagraphs(text).map((paragraph, paragraphIndex) => {
+    const sentences = splitSentences(paragraph);
+    if (sentences.length === 0) return paragraph;
+
+    const nextSentences: string[] = [];
+    sentences.forEach((sentence, sentenceIndex) => {
+      const trimmed = sentence.trim();
+      const matchedOpener = essayOpeners.find((opener) =>
+        new RegExp(`^${opener.replace(/\s+/g, "\\s+")}\\b`, "i").test(trimmed)
+      );
+
+      if (!matchedOpener || trimmed.split(/\s+/).length <= 10) {
+        nextSentences.push(trimmed);
+        return;
+      }
+
+      const openerPattern = new RegExp(`^${matchedOpener.replace(/\s+/g, "\\s+")}\\b,?\\s*`, "i");
+      const content = trimmed.replace(openerPattern, "").trim();
+      const parts = content.split(/,(?=\s)/).map((part) => stripEnding(part)).filter(Boolean);
+      if (parts.length === 0) {
+        nextSentences.push(trimmed);
+        return;
+      }
+
+      const opener = spokenOpeners[stableIndex(seed, paragraphIndex * 101 + sentenceIndex * 17, spokenOpeners.length)];
+      nextSentences.push(finishSentence(`${opener} ${lowercaseFirst(parts[0])}`));
+
+      if (parts.length > 1) {
+        const connector = connectors[stableIndex(seed, paragraphIndex * 131 + sentenceIndex * 29, connectors.length)];
+        const rest = parts.slice(1).join(", ");
+        nextSentences.push(finishSentence(`${connector} ${lowercaseFirst(rest)}`));
+      }
+    });
+
+    return nextSentences.join(" ");
+  }).join("\n\n");
+}
+function removeExecutiveSummaryOpeners(text: string, topic = detectTopic(text)): string {
+  const paragraphs = splitParagraphs(text).map((paragraph) => paragraph.trim()).filter(Boolean);
+  if (paragraphs.length === 0) return text;
+
+  const seed = stableHash(text);
+  const first = paragraphs[0];
+  const cafeOpeners = [
+    "Zaman sekarang, siapa sih yang nggak kenal matcha atau kopi-kopian yang tampilannya niat banget itu?",
+    "Coba ngaku dulu, kalau masuk coffee shop mata kamu sering lari ke menu matcha atau kopi yang kelihatan adem itu kan?",
+    "Kalau bahas matcha latte atau kopi, menurut saya masalahnya bukan cuma rasa. Ada gaya hidupnya juga di situ."
+  ];
+  const generalOpeners = [
+    "Kalau dilihat sekilas, jawabannya memang kelihatan simpel. Padahal nggak sesingkat itu.",
+    "Saya lihat topik ini sering dijawab terlalu rapi, padahal kenyataannya lebih campur aduk.",
+    "Ini salah satu topik yang gampang dibikin seperti ringkasan, tapi sebenarnya lebih enak dijelasin pelan-pelan.",
+    "Gue dulu juga nggak nyangka sih, ternyata...",
+    "Jujur, ini pertanyaan yang sering bikin gue mikir.",
+    "Waktu pertama kali gue nyemplung di topik ini, gue kaget banget.",
+    "Banyak yang tanya soal ini ke gue, dan jawabannya nggak sesimpel yang dikira.",
+    "Sebagai orang yang udah ngalamin sendiri, gue bisa cerita panjang lebar."
+  ];
+  const filmOpeners = [
+    "Bikin film itu mahal karena yang dibayar bukan cuma orang yang kelihatan di layar.",
+    "Orang sering ngira film mahal karena aktornya saja. Padahal belakang layarnya panjang banget.",
+    "Kalau pernah lihat credit title film yang panjang itu, di situlah sebagian jawabannya."
+  ];
+
+  const executivePatterns = [
+    /^\s*Banyak orang[^.?!]{20,260}\b(?:bukan cuma|karena|tapi)\b[^.?!]*[.?!]\s*/i,
+    /^\s*Banyak orang[^.?!]{10,260}\bkarena\b[^.?!]*[.?!]\s*/i,
+    /^\s*Sebagian orang[^.?!]{10,260}\bkarena\b[^.?!]*[.?!]\s*/i,
+    /^\s*Proses[^.?!]{10,260}\bnggak cuma\b[^.?!]*\btapi juga\b[^.?!]*[.?!]\s*/i,
+    /^\s*Matcha latte[^.?!]{20,260}\b(?:bukan cuma|karena|tapi)\b[^.?!]*[.?!]\s*/i,
+    /^\s*Kopi[^.?!]{20,260}\b(?:bukan cuma|karena|tapi)\b[^.?!]*[.?!]\s*/i,
+    /^\s*Budget[^.?!]{20,260}\b(?:karena|lho|bisa naik drastis)\b[^.?!]*[.?!]\s*/i,
+    /^\s*Salah satu[^.?!]{10,220}\badalah\b[^.?!]*[.?!]\s*/i,
+    /^\s*Alasan utamanya[^.?!]{10,220}\bkarena\b[^.?!]*[.?!]\s*/i,
+    /^\s*Fenomena ini terjadi karena[^.?!]*[.?!]\s*/i,
+  ];
+
+  const matchedPattern = executivePatterns.find((pattern) => pattern.test(first));
+  if (!matchedPattern) return text;
+
+  const openerPool = isCafeDrinkTopic(text) ? cafeOpeners : /\b(film|syuting|sutradara|aktor|produksi|pascaproduksi|kamera|VFX|CGI)\b/i.test(text) ? filmOpeners : generalOpeners;
+  const opener = openerPool[stableIndex(seed, 4301, openerPool.length)];
+  const rest = first.replace(matchedPattern, "").trim();
+  paragraphs[0] = rest ? `${opener} ${lowercaseFirst(rest)}` : opener;
+  return paragraphs.join("\n\n");
+}
+
+function addHumanImprecision(text: string): string {
+  let result = text;
+  const replacements: Array<[RegExp, string]> = [
+    [/\bsekitar\s+400\s*mg\s+per\s+hari\b/gi, "sekitar 400 mg-an per hari"],
+    [/\b400\s*mg\b/gi, "sekitar 400 mg"],
+    [/\b3\s+sampai\s+5\s+cangkir\b/gi, "3-5 cangkir, tergantung kuatnya"],
+    [/\bratusan orang\b/gi, "ratusan orang, kadang lebih"],
+    [/\bmingguan atau bahkan bulanan\b/gi, "berminggu-minggu, kadang berbulan-bulan"],
+    [/\bpuluhan sampai ratusan juta dolar\b/gi, "puluhan juta, bahkan bisa ratusan juta dolar"],
+    [/\bRp\s*500\.000\b/gi, "sekitar Rp 500 ribuan"],
+    [/\bRp\s*2\.500\.000\b/gi, "Rp 2,5 jutaan"],
+    [/\b50\s*KWH\b/gi, "sekitar 50 kWh"],
+    [/\bRp\s*2\.000\b/gi, "Rp 2 ribuan"],
+  ];
+
+  replacements.forEach(([pattern, replacement]) => {
+    result = result.replace(pattern, replacement);
+  });
+
+  return result.replace(/\b(\d+)\s*(ribu|juta|miliar|orang|tahun|bulan|hari)\b/gi, (match, num, unit, offset) => {
+    const before = result.slice(Math.max(0, offset - 18), offset).toLowerCase();
+    if (/\b(sekitar|kurang lebih|hampir|lebih dari|nggak nyampe)\s*$/.test(before)) return match;
+    const seed = stableHash(result + match + offset);
+    if (stableUnit(seed, 4302) < 0.58) return match;
+    const prefixes = ["sekitar ", "kurang lebih ", "hampir ", "lebih dari "];
+    return `${prefixes[stableIndex(seed, 4303, prefixes.length)]}${num} ${unit}`;
+  });
+}
+
+function cleanupCafeDrinkArtifacts(text: string): string {
+  return text
+    .replace(/\bMatcha latte emang bikin banyak orang ketagihan, bukan cuma karena rasanya yang enak, tapi juga karena kombinasi rasa yang unik plus manfaat kesehatan yang menarik[â€”-]termasuk dampak positifnya buat kulit\.?/gi, "Matcha latte itu menarik bukan cuma karena rasanya, tapi juga karena tampilannya kece, rasanya earthy-creamy, dan sering dibawa-bawa sebagai minuman yang lebih mindful.")
+    .replace(/\bBut tapi jangan salah paham\b/gi, "Tapi jangan salah paham")
+    .replace(/\bAnd jadi intinya\??\b/gi, "Jadi intinya")
+    .replace(/\bSalah satu alasan matcha latte begitu nendang di lidah adalah profil rasanya yang kompleks\.?/gi, "Yang bikin matcha enak itu rasa khasnya: ada pahit tipis, earthy, kadang creamy kalau sudah ketemu susu.")
+    .replace(/\bkombinasi rasa yang unik plus manfaat kesehatan yang menarik\b/gi, "rasa yang unik dan manfaat yang sering dibahas orang")
+    .replace(/\bplus pengin\b/gi, "pengen")
+    .replace(/\bpengin\b/gi, "pengen")
+    .replace(/\bdi akhir hari\b/gi, "ujung-ujungnya")
+    .replace(/[ \t]{2,}/g, " ")
+    .trim();
+}
+
+function cleanupFilmBudgetArtifacts(text: string): string {
+  return text
+    .replace(/\bSalah satu pengeluaran terbesar emang tenaga kerja\.?/gi, "Bagian yang sering bikin bengkak itu kru dan waktu kerja mereka.")
+    .replace(/\bSatu film saja bisa melibatkan sutradara, penulis naskah, produser, sinematografer, penata artistik, penata suara, editor, penata rias, penata kostum, teknisi pencahayaan, kru kamera, sampai tim efek visual\.?/gi, "Satu film bisa melibatkan sutradara, penulis, kru kamera, tim suara, art, makeup, kostum, VFX, dan masih banyak lagi.")
+    .replace(/\bPenyuntingan video, editing suara, komposisi musik latar, color grading, efek visual \(VFX\), animasi sampai mastering\.?/gi, "Di pascaproduksi juga masih ada editing, suara, musik, color grading, VFX, mastering, dan lain-lain.")
+    .replace(/\bBudget bikin film bisa naik drastis, lho[â€”-]karena prosesnya nggak cuma soal aktor yang muncul di layar\.?/gi, "Bikin film bisa mahal banget karena yang dibayar bukan cuma aktor yang muncul di layar.")
+    .replace(/[ \t]{2,}/g, " ")
+    .trim();
+}
+function applySafeAntiTemplatePass(text: string, topic = detectTopic(text)): string {
+  let result = text;
+  result = fixEnglishConnectorsLeftBehind(result);
+  result = destroyBulletRemnants(result);
+  result = destroyFormalStoryOpeners(result);
+  result = breakEssayExplanations(result);
+  result = destroyLongLists(result);
+  result = removeExecutiveSummaryOpeners(result, topic);
+  result = aggressiveGenericOpenerRemoval(result, topic);
+  result = detectAndFixRepetitiveTransitions(result);
+  result = replaceOverFormalVocabulary(result);
+
+  if (topic === "minuman_kafe" || isCafeDrinkTopic(result)) {
+    result = cleanupCafeDrinkArtifacts(result);
+    result = removeExecutiveSummaryOpeners(result, "minuman_kafe");
+  }
+
+  if (/\b(film|syuting|sutradara|aktor|produksi|pascaproduksi|kamera|VFX|CGI|budget)\b/i.test(result)) {
+    result = cleanupFilmBudgetArtifacts(result);
+    result = destroyLongLists(result);
+  }
+
+  if (topic === "bau_badan" || isBodyOdorTopic(result)) {
+    result = cleanupBodyOdorArtifacts(result);
+    result = convertAdviceToListicleRant(result);
+    result = destroyBulletRemnants(result);
+    result = addGrossHumanTouch(result);
+  }
+
+  if (topic === "karier" || isWorkGraduateTopic(result)) {
+    result = cleanupWorkGraduateAiPatterns(result);
+  }
+
+  if (isReflectiveRelationshipTopic(result) && /\b(uang|finansial|penghasilan|masa depan|kebutuhan hidup|rumah tangga|pasangan)\b/i.test(result)) {
+    result = cleanupRelationshipFinanceConclusion(result);
+  }
+
+  result = removeBalancedExplanations(result);
+  result = destroyLongLists(result);
+  result = addHumanImprecision(result);
+  result = injectNaturalFillerWords(result);
+  result = forceVariableSentenceLength(result);
+  result = preventOverusedHumanTropes(result);
+  result = softenGenericClosingPunchline(result, topic);
+  result = repairGeneralPipelineArtifacts(result);
+  result = cleanupUnnaturalEnglishConnectors(result);
+  return result;
+}
+function isReflectiveRelationshipTopic(text: string): boolean {
+  return /\b(harapan palsu|diberi harapan|memberi harapan|poligami|pernikahan|menikah|nikah|istri|suami|pasangan|hubungan|perempuan|laki-laki|cinta|ditinggal|ditolak|move on|sakit hati|kecewa)\b/i.test(text);
+}
+
+function shouldUseLeanHumanizerPass(text: string): boolean {
+  if (isReflectiveRelationshipTopic(text)) return true;
+  return text.length < 1400 && /\b(empati|keadilan|emosional|nilai sosial|rasa sakit|kesal|sedih|kehilangan)\b/i.test(text);
+}
+
+function forceParagraphChaos(text: string): string {
+  const paragraphs = splitParagraphs(text).map((paragraph) => paragraph.trim()).filter(Boolean);
+  if (paragraphs.length === 0) return text;
+
+  const result = [...paragraphs];
+  const sentenceCounts = () => result.map((paragraph) => splitSentences(paragraph).length);
+
+  if (!sentenceCounts().some((count) => count === 1)) {
+    const targetIndex = sentenceCounts().findIndex((count) => count > 1);
+    if (targetIndex >= 0) {
+      const sentences = splitSentences(result[targetIndex]);
+      result.splice(targetIndex, 1, sentences[0], sentences.slice(1).join(" "));
+    }
+  }
+
+  for (let index = 0; index < result.length - 2; index += 1) {
+    const counts = sentenceCounts();
+    if (counts[index] === counts[index + 1] && counts[index + 1] === counts[index + 2]) {
+      result[index + 1] = `${result[index + 1]} ${result[index + 2]}`.trim();
+      result.splice(index + 2, 1);
+      break;
+    }
+  }
+
+  return result.join("\n\n");
+}
+
+function removeBalancedExplanations(text: string): string {
+  let result = text
+    .replace(/\bYang penting diingat,?\s*nggak semua perempuan punya pandangan yang sama\.?\s*/gi, "")
+    .replace(/\bBagi mereka,\s*ini juga soal keadilan, pengalaman hidup, dan nilai yang orang pegang di rumah dan lingkungan\.?\s*/gi, "Buat sebagian orang, bagian yang bikin tidak enak justru rasa tidak adilnya. ")
+    .replace(/\bDari sudut pandang ini,?\s*/gi, "Kalau pegangan nilainya begitu, ")
+    .replace(/\bMereka nggak sekadar ikut campur, tapi merespons karena melihatnya sebagai isu sosial\.?/gi, "Kadang komentar orang memang berisik, tapi sumbernya sering dari rasa tidak sreg.")
+    .replace(/\bTapi intinya:\s*reaksi publik itu muncul karena ada kaitan dengan nilai yang dipegang bareng-bareng\.?/gi, "Reaksi orang muncul karena mereka merasa ini nyentuh nilai yang mereka pegang juga.")
+    .replace(/\bDi sisi lain,\s*ada juga perempuan yang justru menerima poligami[^.?!]*[.?!]?/gi, "Kalau ada yang menerima poligami, biasanya alasannya juga panjang dan tidak bisa dipaksa sama dengan orang lain.");
+
+  const replacements = [
+    "Menurut saya sih, bagian ini nggak bisa dibereskan dengan satu label.",
+    "Makanya, ini bukan perkara hitam putih.",
+    "Di titik ini, orang biasanya mulai beda pegangan.",
+    "Yang bikin rumit justru karena urusannya bukan cuma aturan, tapi juga rasa aman orang di dalam rumah."
+  ];
+
+  const sentences = splitSentences(result);
+  result = sentences.map((sentence) => {
+    const trimmed = sentence.trim();
+    if (!trimmed) return "";
+
+    if (/\b(Ada yang|Sebagian|Beberapa orang)\b[^.!?]{0,220}\b(ada pula|ada juga|sementara|di sisi lain|tapi|tetapi|namun)\b/i.test(trimmed)) {
+      const seed = stableHash(trimmed);
+      return replacements[stableIndex(seed, 2401, replacements.length)];
+    }
+
+    if (/^Dari perspektif Islam,?\s*/i.test(trimmed)) {
+      return trimmed.replace(/^Dari perspektif Islam,?\s*/i, "Dalam Islam sendiri, ");
+    }
+
+    if (/^Dalam Islam,?\s*/i.test(trimmed)) {
+      return trimmed.replace(/^Dalam Islam,?\s*/i, "Dalam Islam sendiri, ");
+    }
+
+    return trimmed;
+  }).filter(Boolean).join(" ");
+
+  return result.replace(/[ \t]{2,}/g, " ").trim();
+}
+
+function convertToPersonalNarrative(text: string): string {
+  if (!shouldUseLeanHumanizerPass(text)) return text;
+  if (/\b(menurut saya|saya pribadi|buat saya|kalau menurut saya|gue|aku)\b/i.test(text)) return text;
+
+  const paragraphs = splitParagraphs(text).map((paragraph) => paragraph.trim()).filter(Boolean);
+  if (paragraphs.length === 0) return text;
+
+  const topic = detectTopic(text);
+  const seed = stableHash(text);
+  const openersByTopic: Record<string, string[]> = {
+    pernikahan: [
+      "Kalau menurut saya, pembahasan soal pernikahan begini memang gampang bikin orang panas.",
+      "Buat saya, topik seperti ini nggak bisa dibaca cuma dari aturan di atas kertas.",
+      "Saya melihatnya begini: urusan rumah tangga itu sering kelihatan sederhana dari luar, padahal di dalamnya ruwet."
+    ],
+    umum: [
+      "Menurut saya, bagian yang sering kelewat dari topik ini justru ada di rasa yang dialami orangnya.",
+      "Buat saya, ini bukan cuma soal penjelasan yang rapi.",
+      "Kalau dilihat pelan-pelan, topik ini sebenarnya lebih dekat ke pengalaman sehari-hari daripada teori."
+    ]
+  };
+  const openers = topic === "pernikahan" || isReflectiveRelationshipTopic(text)
+    ? openersByTopic.pernikahan
+    : openersByTopic.umum;
+
+  paragraphs.unshift(openers[stableIndex(seed, 2402, openers.length)]);
+  return paragraphs.join("\n\n");
+}
+
+function injectOneGraniteDetail(text: string, topic = detectTopic(text)): string {
+  if (text.length < 280) return text;
+
+  const seed = stableHash(text);
+  const detailsByTopic: Record<string, string[]> = {
+    pernikahan: [
+      "Di bagian praktisnya, yang sering bikin berat justru hal kecil yang berulang: jadwal pulang, nafkah bulanan, perhatian ke anak, dan rasa aman di rumah.",
+      "Kadang masalahnya bukan kalimat besar seperti cinta atau komitmen, tapi siapa yang ditemani saat sakit, siapa yang ditinggal saat ada acara keluarga, dan siapa yang harus pura-pura kuat.",
+      "Kalau sudah masuk rumah tangga, kata adil itu turun jadi urusan yang sangat konkret: waktu, uang, badan, dan perasaan."
+    ],
+    umum: [
+      "Kadang pemicunya kecil saja: chat yang tadinya cepat dibalas, tiba-tiba cuma dibaca; rencana yang kemarin terdengar serius, besoknya jadi menggantung.",
+      "Yang bikin capek biasanya bukan satu kejadian besar, tapi tanda-tanda kecil yang numpuk dan nggak pernah benar-benar dijelaskan.",
+      "Di situ orang sering mulai menghitung ulang hal-hal remeh: pesan terakhir, janji kecil, dan kalimat yang dulu terdengar seperti kepastian."
+    ]
+  };
+
+  const details = topic === "pernikahan" || isReflectiveRelationshipTopic(text) ? detailsByTopic.pernikahan : detailsByTopic.umum;
+  if (details.some((detail) => text.includes(detail))) return text;
+
+  const paragraphs = splitParagraphs(text).map((paragraph) => paragraph.trim()).filter(Boolean);
+  if (paragraphs.length < 2) return `${text.trim()}\n\n${details[stableIndex(seed, 2403, details.length)]}`;
+
+  const targetIndex = Math.min(Math.max(1, Math.floor(paragraphs.length / 2)), paragraphs.length - 1);
+  paragraphs.splice(targetIndex, 0, details[stableIndex(seed, 2403, details.length)]);
+  return paragraphs.join("\n\n");
+}
+
+function applyLecturerCoreLogic(text: string): string {
+  let result = text;
+  const useLeanPass = shouldUseLeanHumanizerPass(result);
+
+  result = applySafeAntiTemplatePass(result);
+  result = destroySequentialStructure(result);
+  result = removeBalancedExplanations(result);
+
+  if (useLeanPass) {
+    result = convertToPersonalNarrative(result);
+    result = injectOneGraniteDetail(result, detectTopic(result));
+    result = forceParagraphChaos(result);
+  } else {
+    result = injectPersonalHook(result);
+    result = breakLongSentences(result);
+    result = forceParagraphChaos(result);
+  }
+
+  result = breakLongSentences(result);
+  result = repairGeneralPipelineArtifacts(result);
+  return result;
+}
 function applyLecturerEnhancementPass(text: string, tone: IndonesianPostProcessTone): string {
   if (tone !== 'indonesian-general') return text;
   return applySafeLecturerStylePass(text);
@@ -7124,10 +8297,179 @@ function applyLecturerEnhancementPass(text: string, tone: IndonesianPostProcessT
 // ============================================================
 // 16. MAIN POST-PROCESSING FUNCTION (UPDATED WITH LECTURER'S FUNCTIONS)
 // ============================================================
+function countTopicSignals(text: string, patterns: RegExp[]): number {
+  return patterns.reduce((count, pattern) => count + (pattern.test(text) ? 1 : 0), 0);
+}
+
+function isWorkGraduateTopic(text: string): boolean {
+  return /\b(fresh graduate|lulusan|sarjana|perguruan tinggi|universitas|kampus|gelar|menganggur|nganggur|lapangan kerja|dunia kerja|lowongan|rekrutmen|perusahaan|skill mismatch|kesenjangan keterampilan|keterampilan|magang|portofolio|otomatisasi|kecerdasan buatan|AI|layoff|PHK|karier|pasar kerja|pengalaman kerja)\b/i.test(text);
+}
+
+
+
+function isSocialMarriageTopic(text: string): boolean {
+  const relationshipSignals = [
+    /\bnikah\b/i,
+    /\bmenikah\b/i,
+    /\bpernikahan\b/i,
+    /\bjodoh\b/i,
+    /\bpasangan\b/i,
+    /\bcalon suami\b/i,
+    /\bcalon istri\b/i,
+    /\bsuami\b/i,
+    /\bistri\b/i,
+    /\bperempuan\b/i,
+    /\bwanita\b/i,
+    /\bcewek\b/i,
+    /\bcowok\b/i,
+    /\blaki-laki\b/i,
+    /\blaki laki\b/i,
+    /\bkarier\b/i,
+    /\bmandiri\b/i,
+    /\bmapan\b/i,
+    /\bfokus kerja\b/i,
+    /\bnunda nikah\b/i,
+    /\bmenunda nikah\b/i,
+    /\btelat nikah\b/i,
+    /\bkapan nikah\b/i,
+    /\bbelum nikah\b/i,
+  ];
+  const topicScore = countTopicSignals(text, relationshipSignals);
+  const hasMarriageCore = /\b(nikah|menikah|pernikahan|jodoh|pasangan|suami|istri|kapan nikah|belum nikah|telat nikah|nunda nikah|menunda nikah)\b/i.test(text);
+  const hasSocialAngle = /\b(perempuan|wanita|cewek|cowok|laki-laki|laki laki|karier|mandiri|mapan|umur|usia|keluarga|orang tua|tekanan|standar|pilihan hidup)\b/i.test(text);
+
+  return hasMarriageCore && (hasSocialAngle || topicScore >= 3);
+}function isInternationalStudyComparisonTopic(text: string): boolean {
+  const studySignals = [
+    /\bkuliah\b/i,
+    /\bstudi\b/i,
+    /\bmahasiswa\b/i,
+    /\bkampus\b/i,
+    /\buniversitas\b/i,
+    /\bperguruan tinggi\b/i,
+    /\bS1\b/i,
+    /\bS2\b/i,
+    /\bS3\b/i,
+    /\bbeasiswa\b/i,
+    /\bSPP\b/i,
+  ];
+  const abroadSignals = [
+    /\bluar negeri\b/i,
+    /\bluar negri\b/i,
+    /\bstudy abroad\b/i,
+    /\bSingapura\b/i,
+    /\bSingapore\b/i,
+    /\bNUS\b/i,
+    /\bNTU\b/i,
+    /\bJerman\b/i,
+    /\bMunich\b/i,
+    /\bAmerika\b/i,
+    /\bAS\b/i,
+    /\bAustralia\b/i,
+    /\bInggris\b/i,
+    /\bUK\b/i,
+    /\bMalaysia\b/i,
+    /\bJepang\b/i,
+    /\bKorea\b/i,
+    /\bRusia\b/i,
+    /\bEropa\b/i,
+    /\bIELTS\b/i,
+    /\bTOEFL\b/i,
+    /\bvisa pelajar\b/i,
+  ];
+  const comparisonSignals = [
+    /\bdibanding(?:kan)?\b/i,
+    /\bbeda(?:nya)?\b/i,
+    /\bperbedaan\b/i,
+    /\bvs\b/i,
+    /\bversus\b/i,
+    /\bkenapa\b/i,
+    /\bmengapa\b/i,
+    /\bsedikit\b/i,
+    /\bsulit\b/i,
+    /\bmahal\b/i,
+  ];
+
+  const studyScore = countTopicSignals(text, studySignals);
+  const abroadScore = countTopicSignals(text, abroadSignals);
+  const comparisonScore = countTopicSignals(text, comparisonSignals);
+
+  return studyScore >= 1 && abroadScore >= 1 && (comparisonScore >= 1 || /\bkuliah\s+di\s+(Singapura|Singapore|Jerman|Amerika|Australia|Inggris|Malaysia|Jepang|Korea|Rusia)\b/i.test(text));
+}function isAcademicNarrativeTopic(text: string): boolean {
+  return /\b(skripsi|tesis|disertasi|tugas akhir|TA|sidang skripsi|sidang tesis|sidang akhir|ujian skripsi|ujian akhir|ujian kompre|komprehensif|seminar proposal|sempro|seminar hasil|semhas|yudisium|revisi|dosen pembimbing|dosen penguji|penguji|proposal penelitian|bab 1|bab i|bab 2|bab ii|bab 3|bab iii|metode penelitian|kuantitatif|kualitatif|daftar pustaka|turnitin|plagiasi|margin 4-3-3|tanda tangan dosen|lembar pengesahan|upload repository|repository kampus|wisuda|akademik)\b/i.test(text);
+}
+function isSportsAnalysisTopic(text: string): boolean {
+  return /\b(mbappe|mbapp[eÃƒÂ©]|sepak bola|sepakbola|bola kaki|ronaldo|messi|neymar|haaland|vinicius|bellingham|liga champions|champions league|pemain bola|psg|real madrid|barcelona|lapangan|gol|assist|striker|winger|gelandang|bek|kiper|pelatih|klub|timnas|olahraga|atlet|pertandingan|transfer pemain|ballon|piala dunia|euro|premier league|la liga|serie a|bundesliga)\b/i.test(text);
+}
+function isDoctorDominantTopic(text: string): boolean {
+  const doctorSignals = [
+    /\bdokter\b/i,
+    /\bkedokteran\b/i,
+    /\bfakultas kedokteran\b/i,
+    /\bFK\b/i,
+    /\bkoas\b/i,
+    /\bko-ass\b/i,
+    /\bresiden\b/i,
+    /\bspesialis\b/i,
+    /\bklinik\b/i,
+    /\brumah sakit\b/i,
+    /\bpasien\b/i,
+    /\bjaga malam\b/i,
+    /\bstetoskop\b/i,
+    /\bjas putih\b/i,
+    /\bstase\b/i,
+    /\bvisite\b/i,
+    /\bIGD\b/i,
+    /\banatomi\b/i,
+    /\bujian kompetensi\b/i,
+  ];
+  const careerSignals = [
+    /\bfresh graduate\b/i,
+    /\blulusan\b/i,
+    /\bsarjana\b/i,
+    /\bperguruan tinggi\b/i,
+    /\buniversitas\b/i,
+    /\bkampus\b/i,
+    /\bgelar\b/i,
+    /\bmenganggur\b/i,
+    /\bnganggur\b/i,
+    /\blapangan kerja\b/i,
+    /\bdunia kerja\b/i,
+    /\blowongan\b/i,
+    /\brekrutmen\b/i,
+    /\bperusahaan\b/i,
+    /\bmagang\b/i,
+    /\bportofolio\b/i,
+    /\blayoff\b/i,
+    /\bPHK\b/i,
+    /\bpasar kerja\b/i,
+  ];
+
+  const doctorScore = countTopicSignals(text, doctorSignals);
+  if (doctorScore === 0) return false;
+
+  const careerScore = countTopicSignals(text, careerSignals);
+  const explicitlyMedicalEducation = /\b(kedokteran|fakultas kedokteran|FK|koas|ko-ass|residen|stase|ujian kompetensi)\b/i.test(text);
+
+  if (careerScore >= 3 && !explicitlyMedicalEducation) return false;
+  if (careerScore >= 5 && doctorScore <= 3) return false;
+
+  return explicitlyMedicalEducation || doctorScore >= 2 || careerScore === 0;
+}
 function detectTopic(text: string): string {
   const lower = text.toLowerCase();
 
-  if (/\b(dokter|kedokteran|fk|fakultas kedokteran|koas|ko-ass|residen|spesialis|klinik|rumah sakit|pasien|jaga malam|stetoskop|jas putih|profesi dokter)\b/i.test(lower)) return "dokter";
+  if (isDoctorDominantTopic(lower)) return "dokter";
+  if (isAcademicNarrativeTopic(lower)) return "skripsi";
+  if (isSportsAnalysisTopic(lower)) return "olahraga";
+  if (isHeavyCivicIssueTopic(lower)) return "isu_berat";
+  if (isBodyOdorTopic(lower)) return "bau_badan";
+  if (isElectricVehicleTopic(lower)) return "review_produk";
+  if (isProductReviewAdviceTopic(lower)) return "review_produk";
+  if (isInternationalStudyComparisonTopic(lower)) return "kuliah_luar_negeri";
+  if (isSocialMarriageTopic(lower)) return "pernikahan";
+  if (isWorkGraduateTopic(lower)) return "karier";
+  if (isCafeDrinkTopic(lower)) return "minuman_kafe";
 
   if (/\b(skincare|kulit|jerawat|glowing|sunscreen|krim|cream|serum|toner|cuci muka|sabun|moisturizer|pelembap|eksfoliasi|retinol|niacinamide|acne)\b/i.test(lower)) return "skincare";
   if (/\b(rumah|harga tanah|properti|ngontrak|kontrakan|kpr|dp|suku bunga|sertifikat|developer|apartemen|kos|sewa rumah|tanah kavling)\b/i.test(lower)) return "properti";
@@ -7146,6 +8488,13 @@ function removeOffTopicSentences(text: string, topic: string): string {
     keuangan: /\b(skincare|kulit|jerawat|glowing|sunscreen|serum|toner|cuci muka|grammar|tenses|native speaker|polyglot|imunisasi|mpasi|daycare)\b/i,
     bahasa: /\b(skincare|kulit|jerawat|glowing|sunscreen|serum|toner|kpr|harga tanah|properti|saham|reksadana|imunisasi|mpasi|daycare)\b/i,
     parenting: /\b(skincare|serum|toner|sunscreen|jerawat|harga tanah|kpr|saham|reksadana|crypto|grammar|tenses|native speaker|polyglot)\b/i,
+    karier: /\b(dokter|kedokteran|koas|ko-ass|residen|spesialis|stetoskop|jas putih|jaga malam|stase|visite|IGD|anatomi|ujian kompetensi|skincare|serum|toner|sunscreen|jerawat|harga tanah|kpr|imunisasi|mpasi|daycare)\b/i,
+    review_produk: /\b(dokter|kedokteran|koas|ko-ass|residen|spesialis|stetoskop|jas putih|jaga malam|stase|visite|IGD|anatomi|ujian kompetensi|fresh graduate|lulusan|sarjana|perguruan tinggi|kampus|skill mismatch|skincare|serum|toner|sunscreen|jerawat|harga tanah|kpr|imunisasi|mpasi|daycare|dana darurat|ember kecil yang bocor|Warung Padang|Pak H|Dimas|Indomaret)\b/i,
+    isu_berat: /\b(dokter|kedokteran|koas|ko-ass|residen|stetoskop|jas putih|fresh graduate|skill mismatch|skincare|serum|toner|sunscreen|review produk|BMW|bimmer|3 series|Warung Padang|Pak H|Dimas|Indomaret|ember kecil yang bocor|gaji baru masuk)\b/i,
+    olahraga: /\b(susu|imunisasi|antar-jemput|obat demam|keputusan soal anak|Catatan kecil|ember kecil yang bocor|gaji baru masuk|cicilan|tabungan|dana darurat|investasi|saham|kredit|STM|etos kerja|Warung Padang|Pak H|Dimas|Indomaret|dokter|kedokteran|koas|stetoskop|jas putih|pasien|skincare|serum|toner|sunscreen|jerawat|BMW|bimmer|3 series|KPK|korupsi|sawit|Papua)\b/i,
+    skripsi: /\b(gaji|cicilan|tabungan|dana darurat|ember kecil|Contoh kecilnya|Catatan kecil|keputusan soal anak|imunisasi|susu|magang|portofolio|perusahaan mining|direktur|nganggur|STM|kerja kantoran|BMW|bimmer|3 series|sawit|KPK|Papua|skincare|serum|sunscreen|dokter|koas|stetoskop|jas putih|pasien)\b/i,
+    kuliah_luar_negeri: /\b(dokter|kedokteran|koas|ko-ass|residen|stetoskop|jas putih|pasien|skincare|serum|toner|sunscreen|jerawat|BMW|bimmer|3 series|sawit|KPK|korupsi|Papua|ember kecil yang bocor|gaji baru masuk|dana darurat|Warung Padang|Pak H|Dimas|Indomaret)\b/i,
+    pernikahan: /\b(dokter|kedokteran|koas|ko-ass|residen|stetoskop|jas putih|pasien|skincare|serum|toner|sunscreen|jerawat|BMW|bimmer|3 series|sawit|KPK|korupsi|Papua|STM|direktur|Warung Padang|Pak H|Dimas|Indomaret|stase|IGD)\b/i,
     dokter: /\b(gaji|cicilan|tabungan|dana darurat|investasi|saham|kredit|direktur|perusahaan|STM|ijazah|etos kerja|ongkos|pulsa|parkir|makan siang|ember kecil yang bocor|diisi terus|Contoh kecilnya|Salah satu teman saya|Lagi di kasur|scroll HP|Ya gitu deh|skincare|serum|toner|sunscreen|jerawat|harga tanah|kpr|grammar|tenses|native speaker|polyglot|imunisasi|mpasi|daycare)\b/i,
     umum: /\b()\b/i,
   };
@@ -7156,6 +8505,13 @@ function removeOffTopicSentences(text: string, topic: string): string {
     keuangan: /\b(gaji|tabungan|dana darurat|investasi|saham|utang|hutang|kredit|cash flow|arus kas|reksadana|crypto|deposito|cicilan)\b/i,
     bahasa: /\b(bahasa|inggris|grammar|tenses|native speaker|polyglot|vocabulary|pronunciation|speaking|listening|ielts|toefl)\b/i,
     parenting: /\b(anak|bayi|sekolah|imunisasi|susu|parenting|orang tua|balita|popok|mpasi|daycare|pengasuhan)\b/i,
+    karier: /\b(fresh graduate|lulusan|sarjana|perguruan tinggi|universitas|kampus|gelar|menganggur|nganggur|lapangan kerja|dunia kerja|lowongan|rekrutmen|perusahaan|skill mismatch|kesenjangan keterampilan|keterampilan|magang|portofolio|otomatisasi|kecerdasan buatan|AI|layoff|PHK|karier|pasar kerja|pengalaman kerja)\b/i,
+    review_produk: /\b(review|ulasan|produk|barang|gadget|laptop|hp|ponsel|kamera|mobil|motor|sedan|suv|hatchback|bmw|beemwe|bimmer|3 series|318i|320i|325i|e30|e36|e46|e90|f30|g20|m43|n46|n20|b48|mesin|transmisi|kopling|oli|servis|service|sparepart|part|pajak|bengkel|kaki-kaki|suspensi|handling|rem|ban|kabin|nyaman|aman|boros|irit|kelebihan|kekurangan|alasan memilih|worth|rekomendasi|tips)\b/i,
+    isu_berat: /\b(sawit|kelapa sawit|perkebunan|agraria|lahan|hutan|deforestasi|lingkungan|konflik lahan|adat|masyarakat adat|Papua|Kokoya|politik|pemilu|partai|korupsi|KPK|DPR|pemerintah|negara|aparat|TNI|Polri|HAM|penggusuran|tambang|nikel|batubara|oligarki|korporasi|perusahaan|PT|undang-undang|UU|pasal|putusan|laporan|dokumenter|Dirty Vote|Tanah Ibu Kami|warga|pengungsi|aktivis|demokrasi)\b/i,
+    olahraga: /\b(mbappe|mbapp[eÃƒÂ©]|sepak bola|sepakbola|ronaldo|messi|neymar|haaland|vinicius|bellingham|liga champions|champions league|pemain bola|psg|real madrid|barcelona|lapangan|gol|assist|striker|winger|gelandang|bek|kiper|pelatih|klub|timnas|olahraga|atlet|pertandingan|transfer pemain|ballon|piala dunia|euro|premier league|la liga|serie a|bundesliga|taktik|formasi|pressing|finishing)\b/i,
+    skripsi: /\b(skripsi|tesis|disertasi|sidang|sidang skripsi|sidang akhir|seminar proposal|sempro|seminar hasil|semhas|yudisium|revisi|dosen pembimbing|dosen penguji|penguji|proposal penelitian|bab 1|bab i|bab 2|bab ii|bab 3|bab iii|metode penelitian|kuantitatif|kualitatif|daftar pustaka|turnitin|plagiasi|margin|tanda tangan|lembar pengesahan|repository|wisuda|kampus|mahasiswa)\b/i,
+    kuliah_luar_negeri: /\b(kuliah|studi|mahasiswa|kampus|universitas|perguruan tinggi|S1|S2|S3|luar negeri|luar negri|Singapura|Singapore|NUS|NTU|Jerman|Munich|Amerika|AS|Australia|Inggris|UK|Malaysia|Jepang|Korea|Rusia|Eropa|IELTS|TOEFL|visa|transkrip|dokumen|bahasa Inggris|biaya hidup|SPP|beasiswa|kelas internasional|Indonesia|keluarga|jurusan|seleksi)\b/i,
+    pernikahan: /\b(nikah|menikah|pernikahan|jodoh|pasangan|suami|istri|perempuan|wanita|cewek|cowok|laki-laki|laki laki|karier|mandiri|mapan|umur|usia|keluarga|orang tua|tekanan|standar|pilihan hidup|mental|ekonomi|biaya nikah|komitmen|hubungan)\b/i,
     dokter: /\b(dokter|kedokteran|fk|fakultas kedokteran|koas|ko-ass|residen|spesialis|klinik|rumah sakit|pasien|jaga malam|stetoskop|jas putih|profesi dokter|anatomi|obat|ujian kompetensi)\b/i,
     umum: /\b()\b/i,
   };
@@ -7183,6 +8539,886 @@ function removeOffTopicSentences(text: string, topic: string): string {
     })
     .filter(Boolean)
     .join("\n\n");
+}
+function filterSentencesByBannedPatterns(text: string, bannedPatterns: RegExp[]): string {
+  return splitParagraphs(text)
+    .map((paragraph) => {
+      const sentences = splitSentences(paragraph);
+      if (!sentences.length) {
+        return bannedPatterns.some((pattern) => pattern.test(paragraph)) ? "" : paragraph.trim();
+      }
+
+      return sentences
+        .filter((sentence) => !bannedPatterns.some((pattern) => pattern.test(sentence)))
+        .join(" ")
+        .trim();
+    })
+    .filter(Boolean)
+    .join("\n\n");
+}
+
+function isQuestionLikeInput(text: string): boolean {
+  const first = splitSentences(text.trim())[0] ?? text.trim();
+  return /[?Ã¯Â¼Å¸]/.test(text) || /^(apa|apakah|kenapa|mengapa|bagaimana|gimana|siapa|kapan|di mana|dimana|berapa|bolehkah|bisakah|mengapa)\b/i.test(first);
+}
+
+function removeQuestionOpeningWhenInputIsStatement(text: string, sourceText: string): string {
+  if (isQuestionLikeInput(sourceText)) return text;
+
+  return text
+    .replace(/^\s*["Ã¢â‚¬Å“Ã¢â‚¬Â']?\s*(?:asli|gila|jujur|serius)\s+ini\s+(?:salah\s+satu\s+)?pertanyaan\b[^.!?\n]*(?:[.!?]+)?\s*/i, "")
+    .replace(/^\s*["Ã¢â‚¬Å“Ã¢â‚¬Â']?\s*ini\s+pertanyaan\b[^.!?\n]*(?:[.!?]+)?\s*/i, "")
+    .trim();
+}
+
+function isHeavyCivicIssueTopic(text: string): boolean {
+  const issueSignals = [
+    /\b(sawit|kelapa sawit|perkebunan|agraria|konflik lahan|deforestasi|lingkungan|hutan|masyarakat adat|adat)\b/i,
+    /\b(politik|pemilu|partai|demokrasi|DPR|pemerintah|negara|kebijakan publik|oligarki)\b/i,
+    /\b(korupsi|KPK|suap|gratifikasi|pencucian uang|penyelewengan|anggaran|proyek negara)\b/i,
+    /\b(Papua|Kokoya|pengungsi|HAM|aparat|TNI|Polri|penggusuran|kekerasan negara)\b/i,
+    /\b(tambang|nikel|batubara|korporasi|perusahaan tambang|izin usaha|konsesi)\b/i,
+  ];
+  const civicToneSignals = [
+    /\b(miris|keji|zalim|zolim|busuk|edan|parah|gila|muak|marah|sedih|warga|rakyat|korban|aktivis|laporan|dokumenter|investigasi|UU|pasal|putusan|PT\.?\s+[A-Z])\b/i,
+  ];
+
+  return countTopicSignals(text, issueSignals) >= 1 && (countTopicSignals(text, civicToneSignals) >= 1 || text.length > 500);
+}
+
+function getCivicIssueLabel(text: string): string {
+  if (/\b(sawit|kelapa sawit|perkebunan)\b/i.test(text)) return "sawit dan konflik lahan";
+  if (/\b(korupsi|KPK|suap|gratifikasi|anggaran)\b/i.test(text)) return "korupsi";
+  if (/\b(Papua|Kokoya|HAM|pengungsi)\b/i.test(text)) return "Papua dan HAM";
+  if (/\b(tambang|nikel|batubara|konsesi)\b/i.test(text)) return "tambang dan lingkungan";
+  if (/\b(politik|pemilu|partai|demokrasi)\b/i.test(text)) return "politik";
+  return "isu publik ini";
+}
+
+function extractCivicFactAnchors(text: string): string[] {
+  const patterns = [
+    /\b(?:19|20)\d{2}\b/g,
+    /\bPT\.?\s+[A-Z][\w.-]*(?:\s+[A-Z][\w.-]*){0,4}/g,
+    /\b(?:UU|Undang-Undang)\s*(?:No\.?|Nomor)?\s*\d+\s*(?:Tahun\s*)?\d{0,4}\b/gi,
+    /\bPasal\s+\d+[A-Za-z]*(?:\s+ayat\s+\(?\d+\)?)?\b/gi,
+    /\b(?:KPK|DPR|TNI|Polri|BBC|Tempo|Kompas|Walhi|AMAN)\b/g,
+    /\b(?:Dirty Vote|Tanah Ibu Kami|Agrinas Palma Nusantara|Labuhanbatu Utara|Kokoya|Papua|Riau|Jambi|Kalimantan|Sulawesi)\b/g,
+  ];
+
+  const anchors: string[] = [];
+  patterns.forEach((pattern) => {
+    const matches = text.match(pattern) ?? [];
+    matches.forEach((match) => {
+      const cleaned = match.trim();
+      if (cleaned && !anchors.some((item) => item.toLowerCase() === cleaned.toLowerCase())) {
+        anchors.push(cleaned);
+      }
+    });
+  });
+
+  return anchors.slice(0, 8);
+}
+
+function cleanupCivicIssueArtifacts(text: string, sourceText = text): string {
+  let result = removeQuestionOpeningWhenInputIsStatement(text, sourceText)
+    .replace(/\b(Secara umum|Pada dasarnya|Selain itu|Di sisi lain|Dengan demikian|Oleh karena itu|Kesimpulannya),?\s*/gi, "")
+    .replace(/\bindustri kelapa sawit\b/gi, "industri sawit")
+    .replace(/\bmemiliki dampak\b/gi, "punya dampak")
+    .replace(/\bmemberikan kontribusi\b/gi, "ikut menyumbang")
+    .replace(/\bperlu diperhatikan\b/gi, "jangan disepelekan")
+    .replace(/\bisu tersebut\b/gi, "isu ini")
+    .replace(/[ \t]{2,}/g, " ")
+    .trim();
+
+  const bannedPatterns = [
+    /\bSudah besar cita-citanya mau jadi apa\b/i,
+    /\bJadi dokter\b|\bkoas\b|\bstetoskop\b|\bjas putih\b|\bpasien\b/i,
+    /\bfresh graduate\b|\bskill mismatch\b|\blulusan perguruan tinggi\b/i,
+    /\bBMW\b|\bbimmer\b|\b3 series\b|\bsparepart\b|\bkopling\b/i,
+    /\bDimas\b.*\bIndomaret\b/i,
+    /\bWarung Padang\b|\bPak H\b|\bbokap\b|\bnasi padang\b/i,
+    /\bember kecil yang bocor\b|\bgaji baru masuk\b|\bdana darurat\b/i,
+  ];
+
+  result = filterSentencesByBannedPatterns(result, bannedPatterns);
+  return cleanupExcessiveWhitespace(result);
+}
+
+function softenCivicParagraph(text: string): string {
+  return text
+    .replace(/\bnamun\b/gi, "tapi")
+    .replace(/\bkarena itu\b/gi, "makanya")
+    .replace(/\bmasyarakat\b/gi, "warga")
+    .replace(/\bperusahaan\b/gi, "korporasi")
+    .replace(/\bpemerintah\b/gi, "pemerintah")
+    .replace(/\bberdampak terhadap\b/gi, "kena ke")
+    .replace(/\bmenimbulkan\b/gi, "bikin")
+    .trim();
+}
+
+function buildCivicForumMode(text: string, sourceText: string): string {
+  const cleaned = cleanupCivicIssueArtifacts(text, sourceText);
+  const label = getCivicIssueLabel(cleaned || sourceText);
+  const anchors = extractCivicFactAnchors(cleaned || sourceText);
+  const sentences = splitSentences(cleaned).filter((sentence) => sentence.trim().length > 0);
+  const paragraphs = splitParagraphs(cleaned).filter((paragraph) => paragraph.trim().length > 0);
+
+  const opening = isQuestionLikeInput(sourceText)
+    ? `Saya jawab ini sebagai warga yang jujur saja capek melihat isu ${label} dipoles terlalu rapi.`
+    : `Saya melihat isu ${label} ini bukan sekadar bahan tulisan. Ini soal warga, tanah, kuasa, dan siapa yang paling sering disuruh menanggung akibatnya.`;
+
+  const sourceChunks = paragraphs.length >= 2 ? paragraphs : [
+    sentences.slice(0, Math.ceil(sentences.length / 3)).join(" "),
+    sentences.slice(Math.ceil(sentences.length / 3), Math.ceil((sentences.length * 2) / 3)).join(" "),
+    sentences.slice(Math.ceil((sentences.length * 2) / 3)).join(" "),
+  ].filter(Boolean);
+
+  const fallbacks = [
+    `Yang bikin miris, pembahasan soal ${label} sering dibuat seolah cuma urusan angka dan pertumbuhan. Padahal di bawahnya ada warga yang kehilangan ruang hidup, lingkungan yang rusak, dan keputusan yang tidak pernah benar-benar dijelaskan dengan bahasa manusia.`,
+    "Kalau ada korporasi atau pejabat yang menikmati keuntungan, pertanyaan paling dasar harus tetap diajukan: siapa yang bayar ongkos sosialnya? Siapa yang kehilangan tanah, rasa aman, atau akses hidup?",
+    "Jangan minta warga selalu sabar sementara keputusan besar dibuat jauh dari mereka. Kritik seperti ini bukan benci negara. Justru karena masih peduli, maka hal busuk harus disebut busuk."
+  ];
+
+  const points = (sourceChunks.length ? sourceChunks : fallbacks)
+    .slice(0, 3)
+    .map((chunk, index) => {
+      const base = softenCivicParagraph(chunk || fallbacks[index] || fallbacks[fallbacks.length - 1]);
+      const lead = index === 0 ? "Yang pertama" : index === 1 ? "Yang kedua" : "Yang ketiga";
+      return `${index + 1}. ${lead}, ${base}`;
+    });
+
+  if (points.length < 3) {
+    for (let index = points.length; index < 3; index += 1) {
+      const lead = index === 0 ? "Yang pertama" : index === 1 ? "Yang kedua" : "Yang ketiga";
+      points.push(`${index + 1}. ${lead}, ${fallbacks[index]}`);
+    }
+  }
+
+  const factLine = anchors.length > 0
+    ? `Fakta yang sudah muncul jangan dibuang: ${anchors.join(", ")}. Detail begini penting karena isu publik tidak boleh cuma jadi slogan cantik.`
+    : "Kalau mau bicara isu publik seperti ini, fakta harus ditaruh di depan: nama lokasi, tahun kejadian, dokumen, putusan, laporan, atau pihak yang terlibat. Tanpa itu, pembahasannya gampang berubah jadi slogan kosong.";
+
+  const closing = "Jadi ya, jangan pura-pura netral kalau yang terdampak selalu warga kecil. Pertanyaannya sederhana: kita mau berdiri di sisi yang mana?";
+
+  return cleanupCivicIssueArtifacts([opening, ...points, factLine, closing].join("\n\n"), sourceText);
+}
+
+function finalizeCivicIssueForumText(text: string, sourceText: string): string {
+  let result = buildCivicForumMode(text, sourceText);
+  result = cleanupTopicCoherenceArtifacts(result, "isu_berat");
+  result = trimRepeatedWords(result);
+  result = cleanupForcedTypoArtifacts(result);
+  result = cleanupUnnaturalEnglishConnectors(result);
+  result = removeQuestionOpeningWhenInputIsStatement(result, sourceText);
+  result = cleanupIndonesianSpacing(result, true);
+  return result;
+}
+function isProductReviewAdviceTopic(text: string): boolean {
+  const productSignals = [
+    /\b(BMW|beemwe|bimmer|3\s*series|318i|320i|325i|E30|E36|E46|E90|F30|G20|M43|N46|N20|B48)\b/i,
+    /\b(mobil|motor|sedan|suv|hatchback|mesin|transmisi|kopling|oli|servis|service|sparepart|part|pajak|bengkel|kaki-kaki|suspensi|handling|rem|ban|kabin)\b/i,
+    /\b(gadget|laptop|hp|ponsel|kamera|produk|barang|device|iphone|samsung|xiaomi|asus|lenovo|macbook)\b/i,
+  ];
+  const reviewSignals = [
+    /\b(review|ulasan|kelebihan|kekurangan|keunggulan|alasan memilih|worth it|worth|rekomendasi|saran|tips|pilih|beli|dibeli|pemakaian|pengalaman pakai)\b/i,
+    /\b(nyaman|aman|boros|irit|maintenance|rawat|perawatan|harga part|biaya servis|fitur|spesifikasi|performa)\b/i,
+  ];
+
+  const productScore = countTopicSignals(text, productSignals);
+  const reviewScore = countTopicSignals(text, reviewSignals);
+  const strongAutomotiveName = /\b(BMW|beemwe|bimmer|3\s*series|318i|320i|325i|E30|E36|E46|E90|F30|G20)\b/i.test(text);
+
+  return (productScore >= 1 && reviewScore >= 1) || strongAutomotiveName;
+}
+
+function isAutomotiveReviewTopic(text: string): boolean {
+  return /\b(BMW|beemwe|bimmer|3\s*series|318i|320i|325i|E30|E36|E46|E90|F30|G20|M43|N46|N20|B48|mobil|motor|sedan|suv|hatchback|mesin|transmisi|kopling|oli|servis|service|sparepart|part|pajak|bengkel|kaki-kaki|suspensi|handling|rem|ban|kabin|cc|turbo|matic|manual)\b/i.test(text);
+}
+
+function getReviewProductName(text: string): string {
+  if (isElectricVehicleTopic(text)) return "mobil listrik";
+if (/\bBMW\s*3\s*Series\b/i.test(text) || /\b3\s*Series\b/i.test(text)) return "BMW 3 Series";
+  if (/\bBMW\b|\bbeemwe\b|\bbimmer\b/i.test(text)) return "BMW";
+  if (/\biPhone\b/i.test(text)) return "iPhone";
+  if (/\bMacBook\b/i.test(text)) return "MacBook";
+  if (/\blaptop\b/i.test(text)) return "laptop ini";
+  if (/\bHP\b|\bponsel\b|\bsmartphone\b/i.test(text)) return "HP ini";
+  if (/\bkamera\b/i.test(text)) return "kamera ini";
+  if (/\bmobil\b/i.test(text)) return "mobil ini";
+  if (/\bmotor\b/i.test(text)) return "motor ini";
+  return "produk ini";
+}
+
+function cleanupProductReviewAdviceArtifacts(text: string): string {
+  let result = text
+    .replace(/^\s*(Keunggulan dan Alasan Memilih|Kelebihan dan Kekurangan|Review|Ulasan)\s+[^\n.?!]*(?:\n+|$)/gi, "")
+    .replace(/\b(Selain itu|Di sisi lain|Dengan demikian|Oleh karena itu|Secara keseluruhan|Kesimpulannya|Pada akhirnya),?\s*/gi, "")
+    .replace(/\bdi era modern ini\b/gi, "")
+    .replace(/\bmenawarkan pengalaman berkendara yang tak tertandingi\b/gi, "enak dipakai")
+    .replace(/\bmenjadi pilihan yang sangat tepat\b/gi, "bisa masuk pilihan")
+    .replace(/\bmemiliki nilai prestise yang tinggi\b/gi, "image-nya dapet")
+    .replace(/[ \t]{2,}/g, " ")
+    .trim();
+
+  const bannedPatterns = [
+    /\bSudah besar cita-citanya mau jadi apa\b/i,
+    /\bJadi dokter\b/i,
+    /\bkoas\b|\bresiden\b|\bstetoskop\b|\bjas putih\b|\bpasien\b/i,
+    /\bfresh graduate\b|\blulusan perguruan tinggi\b|\bskill mismatch\b/i,
+    /\bDimas\b.*\bIndomaret\b/i,
+    /\bWarung Padang\b|\bPak H\b|\bbokap\b|\bnasi padang\b/i,
+    /\bember kecil yang bocor\b|\bgaji baru masuk\b|\bdana darurat\b/i,
+    /\bSalah satu teman saya dulu\b|\blulus STM tahun\b|\bperusahaan mining\b/i,
+  ];
+
+  result = filterSentencesByBannedPatterns(result, bannedPatterns);
+  return cleanupExcessiveWhitespace(result);
+}
+
+function buildElectricVehicleReviewAdvice(text: string): string {
+  const strengths: string[] = [];
+  const addStrength = (pattern: RegExp, line: string) => {
+    if (pattern.test(text) && !strengths.includes(line)) strengths.push(line);
+  };
+
+  addStrength(/\b(biaya|operasional|hemat|charge|cas|listrik|bensin|bbm)\b/i, "biaya pakai harian bisa lebih ringan, terutama kalau banyak jalan di kota");
+  addStrength(/\b(oli|busi|filter|perawatan|servis|service|komponen bergerak)\b/i, "rawatan rutin lebih simpel karena nggak ada oli mesin, busi, dan filter oli seperti mobil bensin");
+  addStrength(/\b(torsi|akselerasi|responsif|performa|tarikan)\b/i, "tarikan awalnya instan, enak buat stop-and-go atau nyalip pendek");
+  addStrength(/\b(senyap|sunyi|nyaman|kabin|getaran|suara)\b/i, "kabinnya lebih hening karena nggak ada suara mesin pembakaran");
+  addStrength(/\b(emisi|polusi|lingkungan|karbon)\b/i, "asap knalpot langsung nol saat dipakai, walau sumber listriknya tetap perlu dipikirkan");
+  addStrength(/\b(insentif|pajak|subsidi|ganjil genap|kebijakan)\b/i, "insentif, pajak, atau aturan tertentu bisa bikin biaya punya lebih masuk akal");
+
+  if (strengths.length === 0) {
+    strengths.push(
+      "biaya pakai harian bisa lebih ringan",
+      "tarikan awalnya instan dan halus",
+      "rawatan rutinnya lebih simpel",
+      "kabinnya lebih senyap buat pemakaian kota"
+    );
+  }
+
+  const list = strengths.slice(0, 6).map((line) => `- ${line}`).join("\n");
+
+  return [
+    "Kalau bahas mobil listrik vs mobil bensin, menurut saya jangan dibikin perang agama otomotif. Yang satu bukan otomatis suci, yang satu bukan otomatis ketinggalan zaman.",
+    `Benefit mobil listrik biasanya kerasa di sini:\n${list}`,
+    "Tapi minusnya tetap ada. Buat perjalanan jauh, akses SPKLU, waktu ngecas, kondisi baterai, dan kebiasaan pakai harian harus dihitung. Kalau rumah belum enak buat ngecas atau sering lewat daerah yang charging station-nya jarang, mobil bensin masih lebih praktis.",
+    "Jadi buat harian di kota, mobil listrik memang punya benefit yang jelas. Buat luar kota atau daerah yang infrastrukturnya belum siap, mobil bensin belum bisa dicoret begitu saja.",
+  ].join("\n\n");
+}
+function buildAutomotiveReviewAdvice(text: string): string {
+  const productName = getReviewProductName(text);
+  const strengths: string[] = [];
+
+  const addStrength = (pattern: RegExp, line: string) => {
+    if (pattern.test(text) && !strengths.includes(line)) strengths.push(line);
+  };
+
+  addStrength(/\b(nyaman|kenyamanan|kabin|interior)\b/i, "nyaman, kabin dan posisi duduknya kerasa lebih niat");
+  addStrength(/\b(handling|setir|kemudi|stabil|suspensi|tikungan)\b/i, "handling enak, setirnya nggak hambar");
+  addStrength(/\b(aman|keselamatan|airbag|rem|stabilitas)\b/i, "fitur aman oke, tergantung tahun dan varian");
+  addStrength(/\b(performa|mesin|tenaga|akselerasi|turbo)\b/i, "tenaga cukup, asal mesin sehat dan rawatannya jelas");
+  addStrength(/\b(desain|prestise|premium|mewah|image|gengsi)\b/i, "tampang dan image masih dapet, apalagi kalau unitnya rapi");
+
+  if (strengths.length === 0) {
+    strengths.push(
+      "nyaman buat harian",
+      "handling lebih hidup daripada mobil yang cuma asal jalan",
+      "image-nya dapet kalau unitnya rapi",
+      "fitur dan rasa kabinnya masih enak dilihat"
+    );
+  }
+
+  const list = strengths.slice(0, 5).map((line, index) => `${index + 1}. ${line}`).join("\n");
+
+  return [
+    `Kalau bahas ${productName}, jawaban pendeknya: enak dipakai, tapi jangan beli cuma karena emblem.`,
+    list,
+    "Minusnya juga ada. Mobil begini sensitif sama riwayat rawat. Unit yang kelihatan mulus di foto belum tentu sehat di kaki-kaki, cooling system, transmisi, sensor, atau rembesan oli.",
+    "Sebelum deal, cek histori servis, pajak, kaki-kaki, suhu mesin, perpindahan transmisi, rembesan, dan kalau bisa scan di bengkel yang ngerti merek itu. Jangan cuma percaya interior wangi sama velg kinclong.",
+    "Kalau siap rawat, ambil. Kalau maunya murah asal jalan, mending pikir dua kali.",
+    "Salam otomotif."
+  ].join("\n\n");
+}
+
+function buildGenericProductReviewAdvice(text: string): string {
+  const productName = getReviewProductName(text);
+  const strengths: string[] = [];
+
+  const addStrength = (pattern: RegExp, line: string) => {
+    if (pattern.test(text) && !strengths.includes(line)) strengths.push(line);
+  };
+
+  addStrength(/\b(nyaman|ergonomis|ringan|mudah dipakai)\b/i, "dipakai harian nggak ribet");
+  addStrength(/\b(cepat|performa|kencang|responsif)\b/i, "performanya cukup enak buat kebutuhan utama");
+  addStrength(/\b(baterai|irit daya|awet)\b/i, "daya tahan atau efisiensinya jadi nilai plus");
+  addStrength(/\b(desain|premium|mewah|rapi)\b/i, "tampilannya rapi, nggak kelihatan murahan");
+  addStrength(/\b(harga|value|worth|murah)\b/i, "value-nya masuk kalau harganya ketemu yang waras");
+
+  if (strengths.length === 0) {
+    strengths.push("cek kebutuhan dulu", "lihat harga pasar", "bandingin biaya rawat atau after-sales", "jangan cuma lihat iklan");
+  }
+
+  const list = strengths.slice(0, 5).map((line, index) => `${index + 1}. ${line}`).join("\n");
+
+  return [
+    `Kalau ngomongin ${productName}, gue lihatnya simpel aja.`,
+    list,
+    "Minusnya jangan diskip. Produk bagus tetap bisa nyebelin kalau after-sales susah, part mahal, garansi ribet, atau kebutuhannya sebenarnya nggak cocok.",
+    "Tipsnya: cek pemakaian utama, harga bekas, biaya servis, garansi, dan review orang yang sudah pakai agak lama. Review baru seminggu biasanya masih terlalu manis.",
+    "Kalau semua itu masuk, baru ambil. Kalau masih ragu, tahan dulu."
+  ].join("\n\n");
+}
+
+function applyProductReviewAdviceStyle(text: string): string {
+  const cleaned = cleanupProductReviewAdviceArtifacts(text);
+  const shaped = isElectricVehicleTopic(cleaned)
+    ? buildElectricVehicleReviewAdvice(cleaned)
+    : isAutomotiveReviewTopic(cleaned)
+      ? buildAutomotiveReviewAdvice(cleaned)
+      : buildGenericProductReviewAdvice(cleaned);
+
+  return cleanupProductReviewAdviceArtifacts(shaped);
+}
+
+function finalizeProductReviewAdviceText(text: string): string {
+  let result = applyProductReviewAdviceStyle(text);
+  result = cleanupTopicCoherenceArtifacts(result, "review_produk");
+  result = trimRepeatedWords(result);
+  result = cleanupForcedTypoArtifacts(result);
+  result = cleanupUnnaturalEnglishConnectors(result);
+  result = applySafeAntiTemplatePass(result, "review_produk");
+  result = cleanupIndonesianSpacing(result, true);
+  return result;
+}
+function addWorkGraduateGroundingLine(text: string): string {
+  const line = "Contoh sederhananya, dua orang sama-sama sarjana bisa punya hasil beda kalau yang satu pernah magang atau punya portofolio, sementara yang satu lagi cuma mengandalkan ijazah.";
+  if (text.includes(line) || text.length < 450) return text;
+
+  const paragraphs = splitParagraphs(text);
+  if (paragraphs.length < 2) return text;
+
+  const next = [...paragraphs];
+  next.splice(Math.min(2, next.length), 0, line);
+  return next.join("\n\n");
+}
+
+function removeDoctorArtifactsFromNonDoctorTopics(text: string, topic: string): string {
+  if (topic === "dokter" || topic === "kedokteran") return text;
+  if (topic !== "karier" && !isWorkGraduateTopic(text)) return text;
+
+  const bannedPatterns = [
+    /Sudah besar cita-citanya mau jadi apa/i,
+    /Jadi dokter/i,
+    /Kalau ngomongin dokter/i,
+    /Dulu profesi dokter/i,
+    /Yang sering tidak kelihatan adalah bagian jaga malam/i,
+    /Di balik kata dokter/i,
+    /Jalur kedokteran/i,
+    /Pada akhirnya, dokter/i,
+    /Kalau nanti hidupnya nyaman.*pasien/i,
+    /Jadi dokter atau bukan/i,
+    /\b(jas putih|stetoskop|koas|ko-ass|residen|stase|visite|IGD|anatomi|ujian kompetensi)\b/i,
+    /\bpasien\b/i,
+  ];
+
+  return filterSentencesByBannedPatterns(text, bannedPatterns);
+}
+
+function removeWorkGraduateLeakyArtifacts(text: string): string {
+  if (!isWorkGraduateTopic(text)) return text;
+
+  const bannedPatterns = [
+    /\bDimas\b.*\bIndomaret\b/i,
+    /\btanggalnya aku lupa\b/i,
+    /\bhabis Lebaran\s+\d{4}\b/i,
+    /\bWarung Padang\b/i,
+    /\bPak H\b/i,
+    /\bbokap\b/i,
+    /\bnasi padang\b/i,
+    /\bDi keluarga saya, ada yang sarjana\b/i,
+    /\bJelas hasilnya\b/i,
+    /\bSalah satu teman saya dulu\b/i,
+    /\blulus STM tahun\b/i,
+    /\bsekarang jadi direktur\b/i,
+    /\bperusahaan mining\b/i,
+    /\bijazah cuma tiket awal\b/i,
+    /\betos kerja\b/i,
+    /\bcuma lulusan SMA tapi gajinya lebih besar dari doktor\b/i,
+    /\bLagi di kasur sambil scroll HP\b/i,
+  ];
+
+  return filterSentencesByBannedPatterns(text, bannedPatterns);
+}
+
+function removeAllFinanceAndParentingTemplates(text: string): string {
+  const bannedPatterns = [
+    /\bgaji\b/i,
+    /\bcicilan\b/i,
+    /\btabungan\b/i,
+    /\bdana darurat\b/i,
+    /\binvestasi\b/i,
+    /\bsaham\b/i,
+    /\bkredit\b/i,
+    /\bdirektur\b/i,
+    /\bperusahaan mining\b/i,
+    /\bSTM\b/i,
+    /\bijazah\b/i,
+    /\betos kerja\b/i,
+    /\bongkos\b/i,
+    /\bpulsa\b/i,
+    /\bparkir\b/i,
+    /\bmakan siang\b/i,
+    /\bember kecil yang bocor\b/i,
+    /\bdiisi terus\b/i,
+    /\bContoh kecilnya\b/i,
+    /\bCatatan kecil\b/i,
+    /\bkeputusan soal anak\b/i,
+    /\bBiaya kecil seperti\b/i,
+    /\bimunisasi\b/i,
+    /\bsusu\b/i,
+    /\bantar-jemput\b/i,
+    /\bobat demam\b/i,
+    /\bpopok\b/i,
+    /\bmpasi\b/i,
+    /\bdaycare\b/i,
+    /\bsekolah anak\b/i,
+    /\bLagi di kasur sambil scroll HP\b/i,
+    /\bWarung Padang\b/i,
+    /\bPak H\b/i,
+    /\bDimas\b.*\bIndomaret\b/i,
+  ];
+
+  return filterSentencesByBannedPatterns(text, bannedPatterns);
+}
+
+function cleanupSportsAnalysisArtifacts(text: string): string {
+  let result = removeAllFinanceAndParentingTemplates(text)
+    .replace(/\b(Secara umum|Pada dasarnya|Dengan demikian|Oleh karena itu|Kesimpulannya),?\s*/gi, "")
+    .replace(/\bAsli ini pertanyaan\b/gi, "Ini")
+    .replace(/[ \t]{2,}/g, " ")
+    .trim();
+
+  const bannedPatterns = [
+    /\bSudah besar cita-citanya mau jadi apa\b/i,
+    /\bJadi dokter\b|\bkoas\b|\bstetoskop\b|\bjas putih\b|\bpasien\b/i,
+    /\bfresh graduate\b|\bskill mismatch\b|\blulusan perguruan tinggi\b/i,
+    /\bBMW\b|\bbimmer\b|\b3 series\b|\bsparepart\b|\bkopling\b/i,
+    /\bsawit\b|\bKPK\b|\bkorupsi\b|\bPapua\b/i,
+  ];
+
+  return filterSentencesByBannedPatterns(result, bannedPatterns);
+}
+
+function removeExactDuplicateSentences(text: string): string {
+  return splitParagraphs(text)
+    .map((paragraph) => {
+      const sentences = splitSentences(paragraph);
+      if (!sentences.length) return paragraph.trim();
+
+      const seen = new Set<string>();
+      const uniqueSentences = sentences.filter((sentence) => {
+        const normalized = sentence
+          .trim()
+          .toLowerCase()
+          .replace(/\s+/g, " ")
+          .replace(/["'Ã¢â‚¬Å“Ã¢â‚¬ÂÃ¢â‚¬ËœÃ¢â‚¬â„¢.,!?;:()\[\]]/g, "");
+        if (!normalized) return false;
+        if (seen.has(normalized)) return false;
+        seen.add(normalized);
+        return true;
+      });
+
+      return uniqueSentences.join(" ").trim();
+    })
+    .filter(Boolean)
+    .join("\n\n");
+}
+function removeAcademicStrayTemplates(text: string): string {
+  const bannedForAcademic = [
+    /\bgaji\b/i,
+    /\bcicilan\b/i,
+    /\btabungan\b/i,
+    /\bdana darurat\b/i,
+    /\bember kecil\b/i,
+    /\bContoh kecilnya\b/i,
+    /\bCatatan kecil\b/i,
+    /\bkeputusan soal anak\b/i,
+    /\bimunisasi\b/i,
+    /\bsusu\b/i,
+    /\bmagang\b/i,
+    /\bportofolio\b/i,
+    /\bperusahaan\b/i,
+    /\bdirektur\b/i,
+    /\bnganggur\b/i,
+    /\bSTM\b/i,
+    /\bijazah\b/i,
+    /\bkerja kantoran\b/i,
+    /\bfresh graduate\b/i,
+    /\blapangan kerja\b/i,
+    /\bdunia kerja\b/i,
+    /\blowongan\b/i,
+    /\brekrutmen\b/i,
+    /\bskill mismatch\b/i,
+    /\bkesenjangan keterampilan\b/i,
+    /\bdua orang sama-sama sarjana\b/i,
+    /\bkuliah buat apa dong\b/i,
+    /\bSIM\b.*\btol\b/i,
+    /\bWarung Padang\b/i,
+    /\bPak H\b/i,
+    /\bDimas\b.*\bIndomaret\b/i,
+  ];
+
+  return filterSentencesByBannedPatterns(text, bannedForAcademic);
+}
+
+function removeDuplicateParagraphs(text: string): string {
+  const seen = new Set<string>();
+  return splitParagraphs(text)
+    .filter((paragraph) => {
+      const norm = paragraph
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, " ")
+        .replace(/["'Ã¢â‚¬Å“Ã¢â‚¬ÂÃ¢â‚¬ËœÃ¢â‚¬â„¢.,!?;:()\[\]]/g, "");
+      if (!norm) return false;
+      if (seen.has(norm)) return false;
+      seen.add(norm);
+      return true;
+    })
+    .join("\n\n");
+}
+
+function cleanupAcademicNarrativeArtifacts(text: string): string {
+  let result = removeAllFinanceAndParentingTemplates(text);
+  result = removeAcademicStrayTemplates(result)
+    .replace(/\bNasib,\s*bisa digambarin\s*Intinya,\s*/gi, "Intinya, ")
+    .replace(/\bPadahal di dalam kepala gue lagu-lagu ngenes dari film drama Korea udah nyala-nyala\b/gi, "Saking gugupnya, di kepala gue malah kebayang lagu-lagu mellow yang nggak ada hubungannya sama sidang.")
+    .replace(/\bgue mikir gitu ya, kok bisa gitu\b/gi, "gue cuma bisa mikir, 'Oh iya juga ya, bisa pakai cara itu, tapi gimana jelasinnya?'")
+    .replace(/"eh, ini hasil yang ya\?"/gi, '"eh, ini hasilnya yang udah gue masukin gimana ya?"')
+    .replace(/\b(Secara umum|Pada dasarnya|Dengan demikian|Oleh karena itu|Kesimpulannya),?\s*/gi, "")
+    .replace(/[ \t]{2,}/g, " ")
+    .trim();
+
+  return removeDuplicateParagraphs(removeExactDuplicateSentences(result));
+}
+
+function finalizeAcademicNarrativeText(text: string, sourceText = text): string {
+  let result = cleanupAcademicNarrativeArtifacts(text);
+  result = removeOffTopicSentences(result, "skripsi");
+  result = removeQuestionOpeningWhenInputIsStatement(result, sourceText);
+  result = trimRepeatedWords(result);
+  result = cleanupForcedTypoArtifacts(result);
+  result = cleanupUnnaturalEnglishConnectors(result);
+  result = removeDuplicateParagraphs(removeExactDuplicateSentences(result));
+  result = cleanupIndonesianSpacing(result, true);
+
+  return result;
+}
+
+
+function cleanupEducationComparisonArtifacts(text: string): string {
+  const bannedPatterns = [
+    /\bember kecil yang bocor\b/i,
+    /\bgaji baru masuk\b/i,
+    /\bdana darurat\b/i,
+    /\bcicilan\b/i,
+    /\bsaham\b/i,
+    /\breksadana\b/i,
+    /\bcrypto\b/i,
+    /\bWarung Padang\b/i,
+    /\bPak H\b/i,
+    /\bDimas\b.*\bIndomaret\b/i,
+    /\bdokter\b/i,
+    /\bkoas\b/i,
+    /\bstetoskop\b/i,
+    /\bskincare\b/i,
+    /\bserum\b/i,
+    /\bBMW\b/i,
+    /\bbimmer\b/i,
+    /\bsawit\b/i,
+    /\bKPK\b/i,
+    /\bPapua\b/i,
+  ];
+
+  let result = filterSentencesByBannedPatterns(text, bannedPatterns);
+  result = result
+    .replace(/^\s*Nggak\s+semua\s+orang\s+Indonesia\s+bisa\s+kuliah\s+di\s+Singapura,?\s+meskipun\s+kesempatan\s+itu\s+terbuka\.\s*/i, "")
+    .replace(/^\s*Tidak\s+semua\s+orang\s+Indonesia\s+bisa\s+kuliah\s+di\s+Singapura,?\s+meskipun\s+kesempatan\s+itu\s+terbuka\.\s*/i, "")
+    .replace(/\bAda banyak hal yang saling terkait\s*[â€”-]\s*mulai dari soal akademik, uang, kebijakan imigrasi, sampai pilihan pribadi\.\s*/gi, "")
+    .replace(/\bYang paling jelas\?\s*Biaya\.\s*/gi, "Yang paling kerasa biasanya biaya. ")
+    .replace(/\bBisa dibilang, ini jadi penghalang utama\.\s*/gi, "Buat banyak keluarga, di situ mentoknya. ")
+    .replace(/\bKemudian,\s*/gi, "Terus, ")
+    .replace(/\bSelanjutnya,\s*/gi, "Terus, ")
+    .replace(/\bJuga,\s*/gi, "Belum lagi, ")
+    .replace(/\bJadi, yang diterima cuma segelintir orang\.\s*/gi, "Ya yang lolos akhirnya memang sedikit. ")
+    .replace(/\bUntuk beberapa orang, ini jadi hambatan tersendiri\.\s*/gi, "Buat sebagian orang, bagian ini saja sudah bikin mundur. ")
+    .replace(/\bSemuanya harus lengkap dan sesuai ketentuan\.\s*/gi, "Semuanya harus rapi dan sesuai aturan. ")
+    .replace(/\bPilihan pribadi pun ikut memengaruhi\.\s*/gi, "Pilihan pribadi juga ikut main. ")
+    .replace(/\bDengan demikian,?\s*/gi, "")
+    .replace(/\bKesimpulannya,?\s*/gi, "")
+    .replace(/[ \t]{2,}/g, " ")
+    .trim();
+
+  return cleanupUnnaturalEnglishConnectors(result);
+}
+
+function splitEducationComparisonParagraph(paragraph: string): string[] {
+  const sentences = splitSentences(paragraph);
+  if (sentences.length <= 3) return [paragraph.trim()];
+
+  const chunks: string[] = [];
+  let buffer: string[] = [];
+  sentences.forEach((sentence, index) => {
+    const startsNewThought = /^(Yang paling kerasa|Kuliah di|Belum lagi|Terus|Universitas|Mereka|Bahasa|Hampir semua|Mau masuk|Buat sebagian|Nggak semua|Gak semua|Banyak yang|Pilihan pribadi|Jadi pintunya|Kalau mau|Makanya)\b/i.test(sentence.trim());
+    if (startsNewThought && buffer.length > 0) {
+      chunks.push(buffer.join(" ").trim());
+      buffer = [];
+    }
+
+    buffer.push(sentence.trim());
+    if (buffer.length >= 3 && index < sentences.length - 1) {
+      chunks.push(buffer.join(" ").trim());
+      buffer = [];
+    }
+  });
+
+  if (buffer.length > 0) chunks.push(buffer.join(" ").trim());
+  return chunks.filter(Boolean);
+}
+
+function convertToEducationComparisonNarrative(text: string): string {
+  let result = text
+    .replace(/(?:^|\n)\s*(?:Pertama|Kedua|Ketiga|Keempat|Kelima)[\s,.:;-]+/gim, "")
+    .replace(/(?:^|\n)\s*\d+[.)]\s+/g, "")
+    .trim();
+
+  const paragraphs = splitParagraphs(result)
+    .flatMap((paragraph) => splitEducationComparisonParagraph(paragraph))
+    .filter(Boolean);
+
+  return paragraphs.join("\n\n");
+}
+
+function forceEducationComparisonPositioning(text: string, sourceText: string): string {
+  const head = text.slice(0, 260);
+  if (/\b(disclaimer|pengalaman saya|saya kuliah|gue pernah|aku pernah|menurut saya|menurutku|opini saya|saya sendiri|gue sendiri)\b/i.test(head)) {
+    return text;
+  }
+
+  const seed = stableHash(text + sourceText);
+  const questionOpeners = [
+    "Menurut saya, pertanyaan soal kuliah di luar negeri begini nggak bisa dijawab cuma dengan 'karena mahal'. Itu benar, tapi belum semuanya.",
+    "Kalau ngomongin kenapa orang Indonesia yang kuliah di luar negeri nggak sebanyak bayangan orang, menurut saya masalahnya berlapis. Bukan cuma soal niat.",
+    "Saya lihat isu kuliah luar negeri ini sering dibuat terlalu simpel. Seolah kalau ada kesempatan, semua orang tinggal berangkat. Padahal nggak begitu juga."
+  ];
+  const statementOpeners = [
+    "Menurut saya, soal kuliah luar negeri ini nggak sesederhana 'ada kesempatan berarti semua bisa berangkat'.",
+    "Kalau dilihat dari sisi pelajar Indonesia, kuliah di luar negeri itu bukan cuma urusan diterima kampusnya.",
+    "Saya lihat bagian yang sering dilupakan adalah proses sebelum berangkatnya. Di situ banyak orang sudah gugur duluan."
+  ];
+  const openers = isQuestionLikeInput(sourceText) ? questionOpeners : statementOpeners;
+  const opener = openers[stableIndex(seed, 123, openers.length)];
+
+  return `${opener}\n\n${text.trim()}`;
+}
+
+function injectEducationComparisonOpinion(text: string): string {
+  if (/\b(silau|bergengsi|gengsi|label luar negeri|kualitas.*relatif|belum tentu lebih baik|nggak otomatis lebih hebat)\b/i.test(text)) {
+    return text;
+  }
+
+  const seed = stableHash(text);
+  const opinions = [
+    "Kalau mau agak jujur, orang kita kadang gampang silau sama label luar negeri. Padahal kampus bagus tetap tergantung jurusan, dosen, fasilitas, dan orangnya juga.",
+    "Yang sering luput, luar negeri itu bukan otomatis lebih pintar. Kadang yang kelihatan beda cuma bahasa, ritme kelas, dan aksesnya.",
+    "Menurut saya, gengsi luar negeri memang ada. Tapi kalau ngomong kualitas, tetap harus lihat kampus dan jurusannya, bukan cuma negaranya."
+  ];
+  const paragraphs = splitParagraphs(text);
+  const insertAt = Math.min(2, Math.max(1, paragraphs.length));
+  paragraphs.splice(insertAt, 0, opinions[stableIndex(seed, 456, opinions.length)]);
+
+  return paragraphs.join("\n\n");
+}
+
+function softenEducationComparisonEnding(text: string): string {
+  const paragraphs = splitParagraphs(text);
+  if (paragraphs.length === 0) return text;
+
+  const lastIndex = paragraphs.length - 1;
+  paragraphs[lastIndex] = paragraphs[lastIndex]
+    .replace(/^Jadi,?\s*/i, "")
+    .replace(/nggak ada yang menutup pintu buat mahasiswa Indonesia\.\s*Tapi karena biaya tinggi, seleksi ketat, persyaratan bahasa, proses administrasi yang rumit, plus pilihan hidup yang berbeda\s*[â€”-]\s*akhirnya cuma sebagian kecil yang benar-benar bisa atau memilih kuliah di Singapura\.?/i, "pintunya memang ada, tapi yang sanggup masuk lewat situ biasanya cuma yang siap di biaya, bahasa, dokumen, dan mental jauh dari rumah.")
+    .replace(/akhirnya cuma sebagian kecil yang benar-benar bisa atau memilih kuliah di Singapura\.?/i, "makanya yang benar-benar berangkat ya tidak sebanyak yang kelihatan di brosur kampus.")
+    .replace(/^Pada akhirnya,?\s*/i, "")
+    .trim();
+
+  return paragraphs.join("\n\n");
+}
+
+function finalizeEducationComparisonText(text: string, sourceText: string): string {
+  let result = cleanupEducationComparisonArtifacts(text);
+  result = removeOffTopicSentences(result, "kuliah_luar_negeri");
+  result = convertToEducationComparisonNarrative(result);
+  result = forceEducationComparisonPositioning(result, sourceText);
+  result = injectEducationComparisonOpinion(result);
+  result = softenEducationComparisonEnding(result);
+  result = cleanupUnnaturalEnglishConnectors(result);
+  result = removeDuplicateParagraphs(removeExactDuplicateSentences(result));
+  result = cleanupIndonesianSpacing(result, true);
+
+  return result;
+}
+
+function nukeNumberedStructure(text: string): string {
+  const seed = stableHash(text);
+  const transitions = [
+    "Yang pertama nih,",
+    "Terus, yang nggak kalah penting,",
+    "Nah, selain itu juga,",
+    "Trus kalau dipikir-pikir,",
+    "Belum lagi soal"
+  ];
+
+  const ordinalPattern = /\b(Pertama|Kedua|Ketiga|Keempat|Kelima|Keenam)\b,?\s*/gi;
+  let ordinalIndex = 0;
+  let result = text.replace(ordinalPattern, (_match) => {
+    const transition = transitions[stableIndex(seed, ordinalIndex + 1201, transitions.length)];
+    ordinalIndex += 1;
+    return `${transition} `;
+  });
+
+  result = result
+    .replace(/(?:^|\n)\s*\d+[.)]\s+/g, "\n")
+    .replace(/\bYang pertama nih,\s+yang pertama\b/gi, "Yang pertama nih")
+    .replace(/\bTerus, yang nggak kalah penting,\s+yang kedua\b/gi, "Terus, yang nggak kalah penting")
+    .replace(/[ \t]{2,}/g, " ")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+
+  return result;
+}
+
+function injectControversialOpener(text: string, sourceText = text): string {
+  const head = text.slice(0, 260);
+  if (/\b(jujur aja|kalau gue lihat|menurutku|menurut gue|gue pribadi|menurut saya|kalau dilihat dari dekat|ini agak nyebelin)\b/i.test(head)) {
+    return text;
+  }
+
+  const seed = stableHash(text + sourceText);
+  const womenFocused = /\b(perempuan|wanita|cewek|cewe|gadis)\b/i.test(text + " " + sourceText);
+  const openers = womenFocused
+    ? [
+        "Jujur aja, gue nggak heran kalau makin banyak perempuan milih nunda nikah. Menurutku, ini bukan cuma soal karier doang.",
+        "Kalau gue lihat, pertanyaan soal kenapa banyak cewek belum nikah itu agak nyebelin ya. Jawabannya sebenarnya udah kelihatan di sekitar kita.",
+        "Gue pribadi sih salut sama perempuan yang nggak buru-buru nikah cuma karena dikejar umur. Daripada salah pilih, mending mikir panjang dulu.",
+        "Ah, ini mah klasik. Bukan mereka yang telat, kadang justru lingkungan kita aja yang keburu-buru ngasih standar."
+      ]
+    : [
+        "Jujur aja, urusan nikah itu sering banget dibikin seolah cuma soal umur. Padahal hidup orang nggak sesimpel kalender.",
+        "Kalau gue lihat, pertanyaan soal kapan nikah itu sering lebih berisik daripada berguna. Orang luar gampang ngomong, yang jalanin kan bukan mereka.",
+        "Menurutku, nikah itu bukan lomba cepat-cepatan. Salah pilih pasangan jauh lebih ribet daripada telat nikah.",
+        "Ini topik yang kelihatannya ringan, tapi sebenarnya nyentil banget. Soalnya nikah sering dipakai buat ngukur hidup orang."
+      ];
+
+  return `${openers[stableIndex(seed, 2202, openers.length)]}\n\n${text.trim()}`;
+}
+
+function addShamelessAdvice(text: string): string {
+  const lastParagraph = splitParagraphs(text).pop() || "";
+  if (/\b(jangan cuma dikejar umur|belajar bikin laporan keuangan|lupa sarapan|modal cinta doang|perbaiki hidup)\b/i.test(lastParagraph)) {
+    return text;
+  }
+
+  const seed = stableHash(text);
+  const advices = [
+    "Gue cuma mau bilang, nikah tuh jangan cuma dikejar umur. Dikejar setoran iya, dikejar deadline skripsi juga iya. Tapi nikah? Santai aja kali. Daripada udah menikah tapi mentalnya masih kayak bocah rebutan remot TV, kan repot.",
+    "Saran gue sih, coba belajar beresin hidup sendiri dulu. Bukan harus sempurna, tapi minimal tahu uang lari ke mana, emosi meledak karena apa, dan batas diri sendiri di mana.",
+    "Intinya, kalau diri sendiri aja masih sering keteteran, jangan buru-buru menyeret orang lain masuk ke hidup yang belum rapi. Pelan-pelan dulu juga nggak dosa.",
+    "Buat orang yang suka nanya 'kapan laku', mending ganti pertanyaannya: apa yang sudah disiapkan supaya hubungan nggak cuma modal cinta doang?"
+  ];
+
+  return `${text.trim()}\n\n${advices[stableIndex(seed, 3303, advices.length)]}`;
+}
+
+function cleanupSocialMarriageArtifacts(text: string): string {
+  let result = removeEnglishPhrases(text);
+  result = result
+    .replace(/\b(Secara umum|Pada dasarnya|Dengan demikian|Oleh karena itu|Kesimpulannya),?\s*/gi, "")
+    .replace(/\bHal ini menunjukkan bahwa\s*/gi, "")
+    .replace(/\bYang penting diingat,?\s*nggak semua perempuan punya pandangan yang sama\.?\s*/gi, "")
+    .replace(/\bAda yang menolak poligami mentah-mentah, ada yang bisa menerima asal kondisinya memungkinkan, dan ada pula yang menganggapnya sebagai pilihan pribadi[^.?!]*[.?!]?/gi, "Menurut saya sih, urusan ini memang nggak bisa dibuat satu suara.")
+    .replace(/\bBagi mereka,\s*ini juga soal keadilan, pengalaman hidup, dan nilai-nilai sosial yang lebih luas\.?\s*/gi, "Buat sebagian orang, bagian yang bikin tidak enak justru rasa tidak adilnya. ")
+    .replace(/\bMereka nggak sekadar ikut campur, tapi merespons karena melihatnya sebagai isu sosial\.?/gi, "Kadang komentar orang memang berisik, tapi sumbernya sering dari rasa tidak sreg.")
+    .replace(/\bAda beberapa faktor yang menyebabkan\s*/gi, "Ada beberapa hal yang bikin ")
+    .replace(/\btidak dapat dipungkiri bahwa\s*/gi, "nggak bisa dimungkiri, ")
+    .replace(/\bperempuan memilih untuk menunda pernikahan\b/gi, "perempuan milih nunda nikah")
+    .replace(/\bmemilih untuk tidak menikah terlebih dahulu\b/gi, "milih nggak buru-buru nikah")
+    .replace(/\bkarier dan pendidikan\b/gi, "karier, sekolah, dan hidup sendiri")
+    .replace(/\btekanan sosial\b/gi, "omongan orang")
+    .replace(/\bekspektasi keluarga\b/gi, "ekspektasi keluarga")
+    .replace(/[ \t]{2,}/g, " ")
+    .trim();
+
+  return cleanupUnnaturalEnglishConnectors(result);
+}
+
+function finalizeSocialMarriageForumText(text: string, sourceText: string): string {
+  let result = cleanupSocialMarriageArtifacts(text);
+  result = nukeNumberedStructure(result);
+  result = removeBalancedExplanations(result);
+  result = injectOneGraniteDetail(result, "pernikahan");
+  result = forceParagraphChaos(result);
+  result = destroyConclusionFormality(result);
+  result = injectControversialOpener(result, sourceText);
+  result = addShamelessAdvice(result);
+  result = removeOffTopicSentences(result, "pernikahan");
+  result = cleanupUnnaturalEnglishConnectors(result);
+  result = removeDuplicateParagraphs(removeExactDuplicateSentences(result));
+  result = cleanupIndonesianSpacing(result, true);
+
+  return result;
+}
+function cleanupTopicCoherenceArtifacts(text: string, topic = detectTopic(text)): string {
+  let result = text;
+
+  if (topic !== "dokter" && topic !== "kedokteran") {
+    result = removeDoctorArtifactsFromNonDoctorTopics(result, topic);
+  }
+
+  if (topic === "karier" || isWorkGraduateTopic(result)) {
+    result = removeWorkGraduateLeakyArtifacts(result);
+  }
+
+  if (topic === "review_produk" || isProductReviewAdviceTopic(result)) {
+    result = cleanupProductReviewAdviceArtifacts(result);
+  }
+
+  if (topic === "isu_berat" || isHeavyCivicIssueTopic(result)) {
+    result = cleanupCivicIssueArtifacts(result);
+  }
+
+  if (topic === "kuliah_luar_negeri" || isInternationalStudyComparisonTopic(result)) {
+    result = cleanupEducationComparisonArtifacts(result);
+  }
+
+  if (topic === "pernikahan" || isSocialMarriageTopic(result)) {
+    result = cleanupSocialMarriageArtifacts(result);
+  }
+
+  if (["olahraga", "skincare", "bahasa", "skripsi", "kuliah_luar_negeri"].includes(topic)) {
+    result = removeAllFinanceAndParentingTemplates(result);
+  }
+
+  if (topic === "skripsi" || isAcademicNarrativeTopic(result)) {
+    result = cleanupAcademicNarrativeArtifacts(result);
+  }
+
+  if (topic === "olahraga" || isSportsAnalysisTopic(result)) {
+    result = cleanupSportsAnalysisArtifacts(result);
+  }
+
+  return removeExactDuplicateSentences(removeOffTopicSentences(result, topic));
 }
 function removeAllFinanceAndWorkTemplates(text: string): string {
   const bannedPatterns = [
@@ -7280,13 +9516,18 @@ export function finalIndonesianHumanize(
   if (!text.trim()) return text.trim();
 
   let result = text.trim();
+  const useProductReviewAdviceMode = tone === "indonesian-general" && isProductReviewAdviceTopic(result);
+  const useCivicIssueForumMode = tone === "indonesian-general" && isHeavyCivicIssueTopic(result);
+  const useAcademicNarrativeMode = tone === "indonesian-general" && isAcademicNarrativeTopic(result);
+  const useEducationComparisonMode = tone === "indonesian-general" && isInternationalStudyComparisonTopic(result);
+  const useSocialMarriageMode = tone === "indonesian-general" && isSocialMarriageTopic(result);
 
   // ============================================================
-  // ⭐ FASE 0: CRITICAL - HAPUS JEBAKAN TERBESAR DULU (Dari Dosen Terakhir)
+  // Ã¢Â­Â FASE 0: CRITICAL - HAPUS JEBAKAN TERBESAR DULU (Dari Dosen Terakhir)
   // destroyNumberedLists WAJIB sebelum logic lain - ini cap AI paling jelas
   // ============================================================
-  if (tone === "indonesian-general") {
-    result = destroyNumberedLists(result);  // ★ BARU: Hancurkan list/penomoran
+  if (tone === "indonesian-general" && !useProductReviewAdviceMode && !useCivicIssueForumMode && !useAcademicNarrativeMode && !useEducationComparisonMode && !useSocialMarriageMode) {
+    result = destroyNumberedLists(result);  // Ã¢Ëœâ€¦ BARU: Hancurkan list/penomoran
   }
 
   // ---- Basic cleanup ----
@@ -7299,7 +9540,7 @@ export function finalIndonesianHumanize(
   }
   
   // ============================================================
-  // ⭐ CRITICAL: REMOVE AI PATTERNS FIRST (MOST IMPORTANT!)
+  // Ã¢Â­Â CRITICAL: REMOVE AI PATTERNS FIRST (MOST IMPORTANT!)
   // ============================================================
   result = removeAiVocababulary(result);
   result = removeSuperficialAnalyses(result);
@@ -7314,22 +9555,46 @@ export function finalIndonesianHumanize(
   result = breakSentenceStartUniformity(result);
   
   // ============================================================
-  // ⭐ NEW: HAPUS KALIMAT DUPlikat (Dari Dosen Terakhir)
+  // Ã¢Â­Â NEW: HAPUS KALIMAT DUPlikat (Dari Dosen Terakhir)
   // Mencegah template repetition yang dideteksi GPTZero
   // ============================================================
   if (tone === "indonesian-general") {
-    result = removeExactDuplicates(result);  // ★ BARU: Hapus kalimat kembar
+    result = removeExactDuplicates(result);  // Ã¢Ëœâ€¦ BARU: Hapus kalimat kembar
+  }
+
+  if (useProductReviewAdviceMode) {
+    return removeQuestionOpeningWhenInputIsStatement(finalizeProductReviewAdviceText(result), text);
+  }
+
+  if (useCivicIssueForumMode) {
+    return finalizeCivicIssueForumText(result, text);
+  }
+
+  if (useAcademicNarrativeMode) {
+    return finalizeAcademicNarrativeText(result, text);
+  }
+
+  if (useEducationComparisonMode) {
+    return finalizeEducationComparisonText(result, text);
+  }
+
+  if (useSocialMarriageMode) {
+    return finalizeSocialMarriageForumText(result, text);
+  }
+
+  if (tone === "indonesian-general") {
+    result = applyLecturerCoreLogic(result);
   }
   
   // ============================================================
-  // ⭐ NEW: LECTURER'S HIGH-PRIORITY FUNCTIONS (Dari Dosen)
+  // Ã¢Â­Â NEW: LECTURER'S HIGH-PRIORITY FUNCTIONS (Dari Dosen)
   // ============================================================
   if (tone === "indonesian-general") {
     result = applySafeLecturerStylePass(result);
   }
   
   // ============================================================
-  // ⭐ NEUTRALIZE GPTZERO SIGNALS (ADD EARLY)
+  // Ã¢Â­Â NEUTRALIZE GPTZERO SIGNALS (ADD EARLY)
   // ============================================================
   if (tone === "indonesian-general") {
     if (detectSymmetricArgumentStructure(result)) {
@@ -7349,7 +9614,7 @@ export function finalIndonesianHumanize(
   }
   
   // ============================================================
-  // ⭐ STRONGEST HUMAN SIGNATURES (Dari Dosen)
+  // Ã¢Â­Â STRONGEST HUMAN SIGNATURES (Dari Dosen)
   // ============================================================
   result = breakOpeningTemplate(result);
   result = addReaderEngagementMarkers(result);
@@ -7389,7 +9654,7 @@ export function finalIndonesianHumanize(
     result = removeForcedGeneralArtifacts(result);
 
     // ============================================================
-    // ⭐ AUTHENTICITY, REPAIR, AND NATURAL FLOW
+    // Ã¢Â­Â AUTHENTICITY, REPAIR, AND NATURAL FLOW
     // ============================================================
     result = addFirstPersonAuthenticMarkers(result);
     result = addImperfectExamples(result);
@@ -7399,40 +9664,47 @@ export function finalIndonesianHumanize(
     result = addRhetoricalPauses(result);
 
     // ============================================================
-    // ⭐ BREAK UNIFORMITY (dari dosen terakhir)
+    // Ã¢Â­Â BREAK UNIFORMITY (dari dosen terakhir)
     // ============================================================
     result = breakUniformSentences(result);
     result = addParagraphChaos(result);
     
     // ============================================================
-    // ⭐ ADD HUMAN IMPERFECTIONS (dari dosen terakhir)
+    // Ã¢Â­Â ADD HUMAN IMPERFECTIONS (dari dosen terakhir)
     // ============================================================
     result = addAbandonedThoughts(result);
     result = addRedundantRestatements(result);
     result = addNaturalErrors(result);
     
     // ============================================================
-    // ⭐ MIX FORMALITY (dari dosen terakhir)
+    // Ã¢Â­Â MIX FORMALITY (dari dosen terakhir)
     // ============================================================
     result = addMixedFormalityInParagraph(result);
     
     // ============================================================
-    // ⭐ GENERALIZE OVER-SPECIFIC DETAILS (dari dosen terakhir)
+    // Ã¢Â­Â GENERALIZE OVER-SPECIFIC DETAILS (dari dosen terakhir)
     // ============================================================
     result = generalizeOverSpecificDetails(result);
+    const useLeanHumanizer = shouldUseLeanHumanizerPass(result);
 
     // ============================================================
-    // ⭐ NEW: DNA TEKS HUMAN 100% - CURHAT DI HP (Dari Dosen Terbaru)
+    // Ã¢Â­Â NEW: DNA TEKS HUMAN 100% - CURHAT DI HP (Dari Dosen Terbaru)
     // Hanya aktif untuk indonesian-general, skip jika teks sudah chaos alami
     // ============================================================
     // Typo ala chat HP yang natural
-    result = addChatStyleTypos(result);
+    if (!useLeanHumanizer) {
+      result = addChatStyleTypos(result);
+    }
     
     // Ekspresi emosi meledak-ledak
-    result = addExplosiveEmotions(result);
+    if (!useLeanHumanizer) {
+      result = addExplosiveEmotions(result);
+    }
     
     // Detail lokasi hyper-spesifik
-    result = addHyperSpecificLocationDetails(result);
+    if (!useLeanHumanizer) {
+      result = addHyperSpecificLocationDetails(result);
+    }
     
     // Pembenaran diri
     result = addSelfJustificationMarkers(result);
@@ -7441,7 +9713,7 @@ export function finalIndonesianHumanize(
     result = addDeliberateChaosStructure(result);
     
     // Perbandingan absurd - TAPI suppress jika topik bukan kreativitas/seni
-    if (!shouldSuppressAbsurdDetail(result)) {
+    if (!useLeanHumanizer && !shouldSuppressAbsurdDetail(result)) {
       result = addAbsurdComparisons(result);
     }
     
@@ -7449,57 +9721,66 @@ export function finalIndonesianHumanize(
     result = addShiftingOpinions(result);
 
     // ============================================================
-    // ⭐ NEW: DNA TEKS HUMAN 100% - LOGIC TAMBAHAN DARI DOSEN (INSIDER, SHOCKING, EMOTIONAL)
+    // ÃƒÂ¢Ã‚Â­Ã‚Â NEW: DNA TEKS HUMAN 100% - LOGIC TAMBAHAN DARI DOSEN (INSIDER, SHOCKING, EMOTIONAL)
     // ============================================================
     // Inject insider confession untuk topik selebriti/umum
     const topicForInsider = detectTopic(result);
     result = injectInsiderConfession(result, topicForInsider);
     
     // Add shocking detail (TMI) untuk teks panjang
-    result = addShockingDetail(result);
+    if (!useLeanHumanizer) {
+      result = addShockingDetail(result);
+    }
     
     // Add emotional closing "berkaca-kaca"
-    result = addEmotionalClosing(result);
+    if (!useLeanHumanizer) {
+      result = addEmotionalClosing(result);
+    }
     
     // Destroy coherence total - bikin lompat-lompat tapi tetap dalam topik
-    if (result.length > 700 && stableUnit(stableHash(result), 3344) > 0.65) {
+    if (!useLeanHumanizer && result.length > 700 && stableUnit(stableHash(result), 3344) > 0.65) {
       result = destroyCoherenceTotal(result);
     }
 
     // ============================================================
-    // ⭐ HUMANIZING TOUCHES (ADD AFTER REMOVING AI)
+    // ÃƒÂ¢Ã‚Â­Ã‚Â HUMANIZING TOUCHES (ADD AFTER REMOVING AI)
     // ============================================================
     result = replaceAbstractWithConcrete(result);
     result = addSensoryPhysicalDetails(result);
     result = addHumanIdiosyncrasies(result);
     
     // ============================================================
-    // ⭐ SPECIFIC ANECDOTE + UNCERTAINTY + HUMOR
+    // ÃƒÂ¢Ã‚Â­Ã‚Â SPECIFIC ANECDOTE + UNCERTAINTY + HUMOR
     // ============================================================
-    result = detectAndReplaceWithSpecificAnecdote(result);
+    if (!useLeanHumanizer) {
+      result = detectAndReplaceWithSpecificAnecdote(result);
+    }
     result = addSpecificNonPersonalMicroDetails(result);
     result = addHumanUncertaintyMarkers(result);
     result = addSelfDeprecatingHumor(result);
-    
-    // ============================================================
-    // ⭐ ADDITIONAL HUMAN TOUCHES (Dari dosen sebelumnya)
+        // ============================================================
+    // Ã¢Â­Â ADDITIONAL HUMAN TOUCHES (Dari dosen sebelumnya)
     // ============================================================
     result = addSentenceFragments(result);
     result = addTagQuestions(result);
     result = addTrailingThoughts(result);
     result = addSelfContradictionMarkers(result);
     // Topic drift hanya jika tidak terlalu kontras
-    if (!shouldSuppressAbsurdDetail(result)) {
+    if (!useLeanHumanizer && !shouldSuppressAbsurdDetail(result)) {
       result = addTopicDrift(result);
     }
-    result = addBilingualTouches(result);
+    if (!useLeanHumanizer) {
+      result = addBilingualTouches(result);
+    }
     result = addEmotionalExclamations(result);
     result = humanizeNumbers(result);
 
     // ============================================================
-    // ⭐ LECTURER'S 5 FUNCTIONS (INTEGRASI DOSEN AWAL)
+    // Ã¢Â­Â LECTURER'S 5 FUNCTIONS (INTEGRASI DOSEN AWAL)
     // ============================================================
-    result = addCodeSwitching(result);
+    if (!useLeanHumanizer) {
+      result = addCodeSwitching(result);
+    }
     result = addSpontaneousExpressions(result);
     result = addEmbeddedRhetoricalQuestions(result);
     result = addSpecificSelfDeprecation(result);
@@ -7507,11 +9788,17 @@ export function finalIndonesianHumanize(
     result = applyNaturalGeneralRhythmPass(result);
 
     // ============================================================
-    // ⭐ ENHANCED ANTI-GPTZERO FUNCTIONS (INTEGRASI BARU)
+    // Ã¢Â­Â ENHANCED ANTI-GPTZERO FUNCTIONS (INTEGRASI BARU)
     // ============================================================
-    result = addAggressiveBurstiness(result);
+    if (["olahraga", "skripsi"].includes(detectTopic(result))) {
+      if (stableUnit(stableHash(result), 789) > 0.9) {
+        result = addAggressiveBurstiness(result);
+      }
+    } else if (!useLeanHumanizer) {
+      result = addAggressiveBurstiness(result);
+    }
     // Profound topic drift hanya jika topik cocok
-    if (!shouldSuppressAbsurdDetail(result)) {
+    if (!useLeanHumanizer && !shouldSuppressAbsurdDetail(result)) {
       result = addProfoundTopicDrift(result);
     }
     result = addStreamOfConsciousness(result);
@@ -7538,12 +9825,12 @@ export function finalIndonesianHumanize(
     result = makeEndingNatural(result);
     
     // ============================================================
-    // ⭐ NEW: GRAMMAR ERRORS + SINGLE SENTENCE PARAGRAPH + POV + PSEUDO-EDIT + RUN-ON
+    // Ã¢Â­Â NEW: GRAMMAR ERRORS + SINGLE SENTENCE PARAGRAPH + POV + PSEUDO-EDIT + RUN-ON
     // ============================================================
     result = applySafeLecturerStylePass(result);
     
     // ============================================================
-    // ⭐ CLEANUP EXCESSIVE WHITESPACE (Dari Dosen Terakhir)
+    // Ã¢Â­Â CLEANUP EXCESSIVE WHITESPACE (Dari Dosen Terakhir)
     // Bersihkan spasi berlebihan tapi sisakan 1-2 baris kosong
     // ============================================================
     result = cleanupExcessiveWhitespace(result);
@@ -7563,15 +9850,16 @@ export function finalIndonesianHumanize(
 
   if (tone === "indonesian-general") {
     const topic = detectTopic(result);
-    if (topic === "dokter" || topic === "kedokteran") {
+    if ((topic === "dokter" || topic === "kedokteran") && isDoctorDominantTopic(result)) {
       result = removeAllFinanceAndWorkTemplates(result);
       result = removeOffTopicSentences(result, topic);
       result = injectDoctorSpecificDNA(result);
     } else {
-      result = removeOffTopicSentences(result, topic);
+      result = cleanupTopicCoherenceArtifacts(result, topic);
     }
   }
   // ---- Final polishing ----
+  result = removeExactDuplicateSentences(result);
   result = trimRepeatedWords(result);
   result = compressOverExplainedParagraphs(result, tone);
   if (tone === "indonesian-general" || tone === "indonesian-professional") {
@@ -7584,12 +9872,41 @@ export function finalIndonesianHumanize(
   result = capitalizeSentenceStarts(capitalizeParagraphStarts(result));
   
   // ============================================================
-  // ⭐ SIGNATURE STAMP (PALING KUAT) + TYPO
+  // Ã¢Â­Â SIGNATURE STAMP (PALING KUAT) + TYPO
   // ============================================================
-  result = addIndonesianSignatureStamp(result);
+  if (!shouldUseLeanHumanizerPass(result)) {
+    result = addIndonesianSignatureStamp(result);
+  }
+  if (tone === "indonesian-general") {
+    result = cleanupTopicCoherenceArtifacts(result);
+    result = removeQuestionOpeningWhenInputIsStatement(result, text);
+  }
   result = cleanupForcedTypoArtifacts(result);
+  result = removeEnglishPhrases(result);
+  result = cleanupUnnaturalEnglishConnectors(result);
+  result = repairGeneralPipelineArtifacts(result);
+  if (tone === "indonesian-general") {
+    result = destroyFormalStoryOpeners(result);
+    result = breakEssayExplanations(result);
+    result = removeExecutiveSummaryOpeners(result);
+    result = applySafeAntiTemplatePass(result);
+    result = destroyConclusionFormality(result);
+  }
+  result = removeExactDuplicateSentences(result);
   
   result = cleanupIndonesianSpacing(result, tone === "indonesian-general");
 
   return result;
 }
+
+
+
+
+
+
+
+
+
+
+
+
